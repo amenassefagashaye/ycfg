@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="theme-color" content="#0a1f3d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Eras-Birhan Pharmaceuticals Stock Management System (EBP-SMS)</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="description" content="Enterprise offline pharmaceutical stock management, sales tracking, inventory control, and cryptographic security system.">
+    <meta property="og:title" content="Eras-Birhan Pharmaceuticals Stock Management System (EBP-SMS)">
+    <meta property="og:description" content="Enterprise offline pharmaceutical stock management, sales tracking, inventory control, and cryptographic security system.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Times New Roman', Times, serif; }
+        :root {
+            --primary: #0a1f3d; --primary-dark: #061224; --primary-light: #1a3a6c;
+            --accent: #ffd700; --accent-dark: #b8860b; --accent-light: #fff8dc;
+            --success: #00ff88; --warning: #ffaa00; --danger: #ff4444;
+            --gray: #8da0c7; --light: #e6f0ff; --shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        html, body { height: 100%; overflow: hidden; }
+        body { background: linear-gradient(135deg, var(--primary-dark), var(--primary), var(--primary-light)); color: var(--light); font-size: 14px; position: relative; }
+        [data-tooltip-text] { position: relative; cursor: help; display: inline-block; }
+        .tooltip-content { position: fixed; z-index: 99999; max-width: 360px; padding: 14px 18px; background: rgba(0,255,136,0.85); background-image: linear-gradient(135deg, rgba(0,255,136,0.85), rgba(0,200,100,0.85)); color: #0a1f3d; font-size: 13px; line-height: 1.5; border-radius: 8px; pointer-events: none; opacity: 0; transition: opacity 0.2s ease; text-shadow: 0 1px 2px rgba(255,255,255,0.5); font-weight: 500; backdrop-filter: blur(4px); box-shadow: 0 4px 20px rgba(0,0,0,0.2); animation: tooltipPulse 1.2s ease-in-out infinite; }
+        @keyframes tooltipPulse { 0% { transform: scale(1); opacity: 0.95; } 50% { transform: scale(1.02); opacity: 1; background: rgba(0,255,136,0.95); } 100% { transform: scale(1); opacity: 0.95; } }
+        .tooltip-content.visible { opacity: 1; }
+        /* FIXED LOGIN PAGE — all content fits one viewport, no scrolling */
+        .welcome-page { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background: linear-gradient(135deg, var(--primary-dark), var(--primary), var(--primary-light)); display: flex; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.3s; overflow: hidden; padding: 10px; }
+        .welcome-content { text-align: center; padding: 1.2rem 1.5rem; max-width: 450px; width: 100%; max-height: 100%; background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border-radius: 20px; border: 1px solid rgba(255,215,0,0.2); overflow-y: auto; display: flex; flex-direction: column; justify-content: center; }
+        .welcome-title { font-size: clamp(0.95rem, 4.2vw, 1.5rem); color: var(--accent); margin-bottom: 0.4rem; font-weight: 800; text-align: center; line-height: 1.25; }
+        .welcome-owner { font-size: clamp(0.9rem, 3.5vw, 1.2rem); color: var(--accent-light); margin-bottom: 1rem; text-align: center; }
+        .login-form { display: flex; flex-direction: column; gap: 0.7rem; }
+        .login-input-group { text-align: left; }
+        .login-input-group label { display: block; margin-bottom: 0.3rem; color: var(--accent); font-weight: 600; font-size: clamp(0.75rem, 2.6vw, 0.9rem); }
+        .login-input-group input, .login-input-group select { width: 100%; padding: 0.7rem; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,215,0,0.2); border-radius: 8px; color: var(--light); font-size: clamp(0.85rem, 2.8vw, 1rem); }
+        .login-btn { background: linear-gradient(145deg, var(--accent), var(--accent-dark)); color: var(--primary); border: none; padding: 0.85rem; border-radius: 12px; font-size: clamp(0.85rem, 2.8vw, 1rem); font-weight: 700; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .login-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255,215,0,0.3); }
+        /* NEW: Login page footer text below login button */
+        .login-footer-text { margin-top: 0.8rem; font-size: clamp(0.75rem, 2.5vw, 0.9rem); color: var(--accent-light); text-align: center; font-weight: 600; line-height: 1.4; }
+        .container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; padding: 10px; overflow-y: auto; display: none; }
+        .action-buttons-corner { position: fixed; bottom: 50px; left: 10px; display: flex; gap: 8px; z-index: 10001; }
+        .corner-btn { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; font-size: 20px; border: none; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        .corner-btn.green { background: linear-gradient(145deg, var(--success), #00cc66); color: var(--primary); }
+        .corner-btn.red { background: linear-gradient(145deg, var(--danger), #cc0000); color: white; }
+        .corner-btn:hover { transform: scale(1.05); }
+        .corner-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .import-dropdown { position: relative; display: inline-block; }
+        .import-dropdown-content { display: none; position: absolute; bottom: 55px; left: 0; background: var(--primary); min-width: 200px; border-radius: 8px; border: 1px solid var(--accent); z-index: 10002; }
+        .import-dropdown-content a { color: var(--light); padding: 10px 15px; text-decoration: none; display: block; cursor: pointer; transition: all 0.2s; }
+        .import-dropdown-content a:hover { background: rgba(255,215,0,0.2); }
+        .import-dropdown.active .import-dropdown-content { display: block; }
+        .fullscreen-toggle { position: fixed; top: 10px; left: 10px; width: 35px; height: 35px; background: rgba(255,215,0,0.2); border: 1px solid var(--accent); border-radius: 6px; color: var(--accent); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10000; font-size: 16px; transition: all 0.3s; }
+        .fullscreen-toggle:hover { background: var(--accent); color: var(--primary); }
+        .share-icon { position: fixed; top: 10px; right: 55px; width: 35px; height: 35px; background: linear-gradient(145deg, var(--success), #00cc66); border: 1px solid var(--success); border-radius: 6px; color: var(--primary); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10000; font-size: 16px; transition: all 0.3s; animation: greenFlash 2s infinite; font-weight: bold; }
+        .share-icon:hover { transform: scale(1.05); box-shadow: 0 0 15px rgba(0,255,136,0.5); }
+        @keyframes greenFlash { 0% { box-shadow: 0 0 0 0 rgba(0,255,136,0.4); } 50% { box-shadow: 0 0 0 5px rgba(0,255,136,0.2); } 100% { box-shadow: 0 0 0 0 rgba(0,255,136,0); } }
+        .settings-icon { position: fixed; top: 10px; right: 10px; width: 35px; height: 35px; background: rgba(255,215,0,0.2); border: 1px solid var(--accent); border-radius: 6px; color: var(--accent); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10000; font-size: 16px; transition: all 0.3s; }
+        .settings-icon:hover { background: var(--accent); color: var(--primary); transform: rotate(90deg); }
+        /* NEW: Update icon - icon only, no text label */
+        .update-icon { position: fixed; top: 10px; right: 100px; width: 35px; height: 35px; background: linear-gradient(145deg, var(--warning), #cc8800); border: 1px solid var(--warning); border-radius: 6px; color: var(--primary); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10000; font-size: 16px; transition: all 0.3s; }
+        .update-icon:hover { transform: scale(1.05); box-shadow: 0 0 15px rgba(255,170,0,0.5); }
+        .update-icon.checking { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .update-icon .update-badge { position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 0.6rem; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+        .update-icon .update-badge.hidden { display: none; }
+        .idg-footer { position: fixed; bottom: 10px; left: 10px; color: var(--accent); font-size: 12px; font-weight: 600; text-shadow: 0 0 5px rgba(255,215,0,0.3); z-index: 10001; opacity: 0.8; pointer-events: none; }
+        header { background: rgba(10,31,61,0.95); backdrop-filter: blur(10px); padding: 1rem; border-radius: 15px; margin-bottom: 1rem; border: 1px solid rgba(255,215,0,0.2); box-shadow: var(--shadow); }
+        .logo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
+        .logo-icon { background: linear-gradient(145deg, var(--accent), var(--accent-dark)); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+        .logo-icon i { font-size: 1.8rem; color: var(--primary); }
+        .logo-text h1 { font-size: clamp(1.5rem, 6vw, 2.5rem); font-weight: 900; background: linear-gradient(45deg, #00ff88, #00cc66, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; animation: greenFlashText 2s infinite; text-shadow: 0 0 10px rgba(0,255,136,0.5); }
+        @keyframes greenFlashText { 0% { filter: brightness(1); } 50% { filter: brightness(1.3); text-shadow: 0 0 20px rgba(0,255,136,0.8); } 100% { filter: brightness(1); } }
+        .nav-buttons { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .nav-btn { flex: 1 1 auto; min-width: 80px; padding: 1rem 0.5rem; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,215,0,0.2); color: var(--light); border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 600; transition: all 0.3s; justify-content: center; font-size: clamp(0.7rem, 2vw, 0.9rem); }
+        .nav-btn:hover { background: rgba(255,215,0,0.15); border-color: var(--accent); transform: translateY(-2px); }
+        .nav-btn i { color: var(--accent); }
+        .pharmacy-info-container { background: rgba(10,31,61,0.95); backdrop-filter: blur(10px); border-radius: 15px; padding: 2rem; border: 2px solid rgba(255,215,0,0.3); height: calc(100vh - 150px); display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+        .pharmacy-header h2 { color: var(--accent); font-size: clamp(2rem, 8vw, 3.5rem); text-align: center; margin-bottom: 1rem; font-weight: 900; }
+        .owner-name { font-size: clamp(2.2rem, 7vw, 3rem) !important; font-weight: 900 !important; text-align: center; margin: 2rem 0; color: var(--success); text-shadow: 0 0 15px rgba(0,255,136,0.6); }
+        .editable-text { cursor: pointer; transition: all 0.3s; position: relative; }
+        .editable-text:hover { background: rgba(255,215,0,0.2); border-radius: 8px; padding: 0 4px; }
+        .editable-text.admin-mode:hover:after { content: "✎"; position: absolute; right: -20px; top: 0; color: var(--accent); font-size: 1rem; }
+        .full-screen-mode { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary-dark), var(--primary), var(--primary-light)); z-index: 2000; display: none; overflow-y: auto; padding: 10px; }
+        .full-screen-mode.active { display: block; }
+        .full-screen-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 1rem; background: rgba(10,31,61,0.95); backdrop-filter: blur(10px); border-radius: 15px; border: 1px solid rgba(255,215,0,0.2); flex-wrap: wrap; gap: 0.5rem; }
+        .full-screen-header h2 { color: var(--accent); font-size: clamp(1rem, 4vw, 1.3rem); display: flex; align-items: center; gap: 8px; text-align: center; }
+        .close-full-screen { background: rgba(255,255,255,0.1); border: 2px solid rgba(255,215,0,0.2); color: var(--accent); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; transition: all 0.3s; }
+        .notification-center { position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px; z-index: 10001; flex-wrap: wrap; }
+        .notification-counter { width: 55px; height: 55px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); position: relative; }
+        .notification-counter.critical { background: var(--danger); color: white; animation: pulse-red 2s infinite; }
+        .notification-counter.warning { background: var(--warning); color: var(--primary); animation: pulse-yellow 2s infinite; }
+        .notification-counter.info { background: var(--accent); color: var(--primary); animation: pulse-gold 2s infinite; }
+        .notification-counter .count { font-size: 1.3rem; font-weight: bold; }
+        .notification-counter .label { font-size: 0.65rem; white-space: nowrap; }
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(255,68,68,0.7); } 70% { box-shadow: 0 0 0 10px rgba(255,68,68,0); } 100% { box-shadow: 0 0 0 0 rgba(255,68,68,0); } }
+        @keyframes pulse-yellow { 0% { box-shadow: 0 0 0 0 rgba(255,170,0,0.7); } 70% { box-shadow: 0 0 0 10px rgba(255,170,0,0); } 100% { box-shadow: 0 0 0 0 rgba(255,170,0,0); } }
+        @keyframes pulse-gold { 0% { box-shadow: 0 0 0 0 rgba(255,215,0,0.7); } 70% { box-shadow: 0 0 0 10px rgba(255,215,0,0); } 100% { box-shadow: 0 0 0 0 rgba(255,215,0,0); } }
+        .notification-panel { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 550px; max-height: 80vh; background: linear-gradient(135deg, var(--primary-dark), var(--primary), var(--primary-light)); border: 2px solid var(--accent); border-radius: 15px; padding: 1rem; z-index: 10002; display: none; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .notification-panel.active { display: block; }
+        .notification-panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(255,215,0,0.2); }
+        .notification-panel-header h3 { color: var(--accent); }
+        .notification-list-item { padding: 0.8rem; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 0.5rem; border-left: 4px solid; cursor: pointer; transition: all 0.3s; }
+        .notification-list-item:hover { background: rgba(255,215,0,0.1); transform: translateX(5px); }
+        .notification-list-item.critical { border-color: var(--danger); }
+        .notification-list-item.warning { border-color: var(--warning); }
+        .notification-list-item.info { border-color: var(--accent); }
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 10000; }
+        .toast { background: rgba(10,31,61,0.98); backdrop-filter: blur(10px); border-left: 4px solid; color: var(--light); padding: 0.8rem 1rem; border-radius: 8px; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px; animation: slideIn 0.3s ease; min-width: 250px; max-width: 350px; }
+        .toast.critical { border-color: var(--danger); }
+        .toast.warning { border-color: var(--warning); }
+        .toast.info { border-color: var(--accent); }
+        .toast.success { border-color: var(--success); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .form-container { background: rgba(10,31,61,0.95); backdrop-filter: blur(10px); border-radius: 15px; padding: 1.5rem; border: 1px solid rgba(255,215,0,0.2); margin-bottom: 1rem; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+        .form-group { margin-bottom: 0.5rem; }
+        label { display: flex; align-items: center; gap: 6px; margin-bottom: 0.3rem; color: var(--accent); font-weight: 500; font-size: 0.9rem; }
+        input, select, textarea { width: 100%; padding: 0.7rem; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,215,0,0.2); border-radius: 8px; color: var(--light); font-size: 0.9rem; transition: all 0.3s; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); background: rgba(255,255,255,0.1); }
+        .value-display { padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 6px; margin-top: 0.3rem; font-size: 0.9rem; color: var(--accent); text-align: center; }
+        .btn-group { display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; }
+        .btn { padding: 0.8rem 1.5rem; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s; flex: 1 1 auto; justify-content: center; }
+        .btn-primary { background: linear-gradient(145deg, var(--accent), var(--accent-dark)); color: var(--primary); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(255,215,0,0.3); }
+        .btn-secondary { background: rgba(255,255,255,0.1); color: var(--light); border: 2px solid rgba(255,215,0,0.2); }
+        .btn-secondary:hover { background: rgba(255,215,0,0.1); }
+        .btn-success { background: linear-gradient(145deg, var(--success), #00cc66); color: var(--primary); }
+        .btn-success:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,255,136,0.3); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .table-container { overflow-x: auto; border-radius: 10px; border: 1px solid rgba(255,215,0,0.2); background: rgba(10,31,61,0.95); max-height: calc(100vh - 250px); overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { background: rgba(255,215,0,0.1); padding: 0.8rem; text-align: left; color: var(--accent); font-weight: 600; font-size: 0.8rem; position: sticky; top: 0; z-index: 10; }
+        td { padding: 0.8rem; border-bottom: 1px solid rgba(255,215,0,0.1); color: var(--light); font-size: 0.8rem; }
+        tr:hover { background: rgba(255,215,0,0.05); }
+        .settings-panel { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary-dark), var(--primary), var(--primary-light)); z-index: 3000; display: none; overflow-y: auto; padding: 20px; }
+        .settings-panel.active { display: block; }
+        .settings-container { background: transparent; max-width: 900px; margin: 50px auto; color: var(--light); position: relative; }
+        .settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding: 1rem; background: rgba(10,31,61,0.95); backdrop-filter: blur(10px); border-radius: 15px; border: 1px solid rgba(255,215,0,0.2); }
+        .settings-header h2 { color: var(--accent); display: flex; align-items: center; gap: 10px; font-size: clamp(1.2rem, 4vw, 1.8rem); text-align: center; }
+        .settings-section { margin-bottom: 2rem; padding: 1.5rem; background: rgba(10,31,61,0.95); backdrop-filter: blur(10px); border-radius: 15px; border: 1px solid rgba(255,215,0,0.2); }
+        .settings-section h3 { color: var(--accent); margin-bottom: 1rem; font-size: 1.1rem; }
+        .settings-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+        .settings-row label { color: var(--accent-light); margin-bottom: 0.3rem; }
+        .settings-row input, .settings-row select { background: rgba(255,255,255,0.1); border: 2px solid rgba(255,215,0,0.2); color: var(--light); }
+        .checkbox-group { display: flex; flex-wrap: wrap; gap: 1rem; }
+        .checkbox-group label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+        .dashboard-card { background: rgba(10,31,61,0.95); backdrop-filter: blur(10px); border-radius: 12px; padding: 1rem; border: 1px solid rgba(255,215,0,0.2); cursor: pointer; transition: all 0.3s; }
+        .dashboard-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+        .dashboard-card h3 { color: var(--accent); font-size: 0.9rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 6px; text-align: center; }
+        .dashboard-card .value { font-size: clamp(1.2rem, 3vw, 1.5rem); font-weight: 700; color: var(--light); text-align: center; }
+        .dashboard-card .sub-value { font-size: 0.7rem; color: var(--gray); text-align: center; }
+        .audit-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.8rem; margin: 1rem 0; }
+        .audit-summary-item { background: rgba(255,255,255,0.05); border-radius: 8px; padding: 0.8rem; border: 1px solid rgba(255,215,0,0.1); cursor: pointer; transition: all 0.3s; text-align: center; }
+        .audit-summary-item:hover { background: rgba(255,215,0,0.1); transform: translateY(-2px); }
+        .audit-summary-item h4 { color: var(--accent); font-size: 0.8rem; margin-bottom: 0.3rem; }
+        .audit-summary-value { font-size: 1rem; color: var(--light); font-weight: bold; }
+        .charts-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin: 1rem 0; }
+        .chart-card { background: rgba(10,31,61,0.95); border-radius: 12px; padding: 1rem; border: 1px solid rgba(255,215,0,0.2); }
+        .chart-card h3 { color: var(--accent); margin-bottom: 1rem; font-size: 1rem; text-align: center; }
+        canvas { max-height: 200px; width: 100% !important; }
+        .search-filter { display: flex; gap: 0.8rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .search-box { flex: 1; display: flex; align-items: center; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,215,0,0.2); border-radius: 8px; padding: 0.5rem; min-width: 200px; }
+        .search-box i { color: var(--accent); margin-right: 0.5rem; }
+        .search-box input { border: none; background: transparent; padding: 0; }
+        .filter-select { min-width: 120px; }
+        .action-buttons { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+        .action-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,215,0,0.2); color: var(--accent); width: 32px; height: 32px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
+        .action-btn:hover { background: var(--accent); color: var(--primary); }
+        .status-indicator { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; }
+        .status-expired { background: var(--danger); }
+        .status-critical { background: var(--warning); }
+        .status-warning { background: var(--accent); }
+        .status-ok { background: var(--success); }
+        .variance-positive { color: var(--success); font-weight: bold; }
+        .variance-negative { color: var(--danger); font-weight: bold; }
+        #notificationSound { display: none; }
+        .sales-table-wrapper { overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch; }
+        .sales-table { min-width: 2000px; width: 100%; font-size: 0.8rem; }
+        .sales-table input, .sales-table select { padding: 4px; font-size: 0.75rem; }
+        .modal-fullscreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 20000; display: none; align-items: center; justify-content: center; flex-direction: column; }
+        .modal-fullscreen.active { display: flex; }
+        .modal-content { background: linear-gradient(135deg, var(--primary-dark), var(--primary)); border: 2px solid var(--accent); border-radius: 20px; padding: 2rem; max-width: 500px; width: 90%; text-align: center; position: relative; }
+        .modal-exit { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: var(--accent); }
+        .share-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 40000; display: none; overflow-y: auto; padding: 20px; }
+        .share-modal.active { display: block; }
+        .share-container { max-width: 1400px; margin: 20px auto; background: linear-gradient(135deg, var(--primary-dark), var(--primary), var(--primary-light)); border: 2px solid var(--accent); border-radius: 20px; padding: 1.5rem; }
+        .share-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255,215,0,0.2); flex-wrap: wrap; gap: 1rem; }
+        .share-header h2 { color: var(--accent); display: flex; align-items: center; gap: 10px; }
+        .checkbox-cell { width: 40px; text-align: center; }
+        .checkbox-cell input { width: 20px; height: 20px; cursor: pointer; }
+        .share-stats { background: rgba(255,215,0,0.1); border-radius: 8px; padding: 0.8rem; margin: 1rem 0; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+        .share-stat-item { text-align: center; }
+        .share-stat-item .label { font-size: 0.7rem; color: var(--gray); }
+        .share-stat-item .value { font-size: 1.2rem; font-weight: bold; color: var(--accent); }
+        .share-table-wrapper { overflow-x: auto; max-height: 500px; overflow-y: auto; }
+        .share-table { min-width: 1400px; width: 100%; font-size: 0.75rem; }
+        .share-table th, .share-table td { padding: 0.5rem; text-align: left; border-bottom: 1px solid rgba(255,215,0,0.1); }
+        .share-table th { background: rgba(255,215,0,0.15); position: sticky; top: 0; }
+        .share-table tr.selected { background: rgba(0,255,136,0.1); }
+        .amharic-info { background: rgba(0,255,136,0.1); border-left: 4px solid var(--success); padding: 0.8rem; margin: 1rem 0; border-radius: 8px; font-size: 0.85rem; color: var(--light); text-align: center; }
+        .amharic-info i { color: var(--success); margin-right: 0.5rem; }
+        .time-filter-group { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .time-filter-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,215,0,0.3); color: var(--light); padding: 4px 12px; border-radius: 20px; cursor: pointer; font-size: 0.75rem; transition: all 0.2s; }
+        .time-filter-btn.active { background: var(--accent); color: var(--primary); border-color: var(--accent); }
+        .time-filter-btn:hover { background: rgba(255,215,0,0.2); }
+        .custom-date-range { display: flex; gap: 8px; align-items: center; }
+        .custom-date-range input { padding: 4px 8px; font-size: 0.75rem; width: 120px; }
+        .total-loss-btn { background: rgba(255,68,68,0.2); border: 1px solid var(--danger); color: var(--danger); padding: 6px 15px; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .total-loss-btn:hover { background: var(--danger); color: white; }
+        .loss-reasons-table { width: 100%; font-size: 0.8rem; margin-top: 10px; }
+        .loss-reasons-table th, .loss-reasons-table td { padding: 6px; text-align: left; }
+        .loss-modal-content { max-width: 800px; max-height: 80vh; overflow-y: auto; }
+        .visibility-toggle-group { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+        .visibility-toggle-group label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .unit-dropdown { width: 100px; padding: 4px; font-size: 0.75rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,215,0,0.3); border-radius: 4px; color: var(--light); }
+        .unit-dropdown:focus { outline: none; border-color: var(--accent); }
+        .quantity-input { width: 90px; padding: 4px; font-size: 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,215,0,0.3); border-radius: 4px; color: var(--light); }
+        .price-input { width: 100px; padding: 4px; font-size: 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,215,0,0.3); border-radius: 4px; color: var(--light); }
+        .total-display { font-weight: bold; color: var(--accent); text-align: right; }
+        @media (max-width: 768px) { .nav-btn { min-width: calc(50% - 0.25rem); font-size: 0.8rem; } .nav-btn i { font-size: 1rem; } .dashboard-grid { grid-template-columns: repeat(2, 1fr); } .btn-group { flex-direction: column; } .btn { width: 100%; } .sales-table { min-width: 2000px; } .unit-dropdown, .quantity-input, .price-input { width: 70px; } }
+        @media (max-width: 480px) { .full-screen-header { flex-direction: column; align-items: stretch; } .close-full-screen { align-self: flex-end; } .dashboard-grid { grid-template-columns: 1fr; } .notification-center { bottom: 10px; right: 10px; } .notification-counter { width: 45px; height: 45px; } .notification-counter .count { font-size: 1rem; } .notification-counter .label { font-size: 0.55rem; } .unit-dropdown, .quantity-input, .price-input { width: 60px; font-size: 0.7rem; } }
+        .master-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 50000; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .master-box { background: linear-gradient(135deg, var(--primary-dark), var(--primary)); border: 3px solid var(--accent); border-radius: 20px; padding: 2rem; max-width: 400px; width: 90%; text-align: center; }
+        .master-box h2 { color: var(--accent); margin-bottom: 1rem; }
+        .master-box button { background: var(--accent); color: var(--primary); border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; }
+        .master-box button:hover { transform: scale(1.02); }
+        .error-msg { color: var(--danger); margin-top: 10px; font-size: 14px; }
+        .total-row { background: rgba(0,255,136,0.2); font-weight: bold; border-top: 2px solid var(--accent); }
+        .total-row td { font-weight: bold; color: var(--accent); }
+        .history-pagination { display: flex; justify-content: center; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+        .page-btn { background: rgba(255,255,255,0.1); border: 1px solid var(--accent); color: var(--accent); padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; }
+        .page-btn.active { background: var(--accent); color: var(--primary); }
+        .review-activity-log { max-height: 300px; overflow-y: auto; }
+        .sync-status { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
+        .sync-online { background: var(--success); }
+        .sync-offline { background: var(--danger); }
+        .sync-syncing { background: var(--warning); animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+        .detail-table-container { margin-top: 1rem; border-top: 1px solid rgba(255,215,0,0.2); padding-top: 1rem; }
+        .detail-table { width: 100%; font-size: 0.75rem; }
+        .detail-table th, .detail-table td { padding: 0.5rem; text-align: left; }
+        .toggle-detail-btn { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.8rem; margin-left: 0.5rem; }
+        .hidden-detail { display: none; }
+        .right-click-disabled { user-select: none; -webkit-user-select: none; }
+        .editable-field { cursor: pointer; border-bottom: 1px dashed var(--accent); }
+        .searchable-select { position: relative; }
+        .searchable-select input { width: 100%; }
+        .searchable-select-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: var(--primary); border: 1px solid var(--accent); border-radius: 4px; max-height: 200px; overflow-y: auto; z-index: 1000; display: none; }
+        .searchable-select-dropdown.active { display: block; }
+        .searchable-select-dropdown div { padding: 8px; cursor: pointer; }
+        .searchable-select-dropdown div:hover { background: rgba(255,215,0,0.2); }
+        .explain-overlay { position: fixed; z-index: 99998; max-width: 380px; padding: 16px 20px; background: rgba(10,31,61,0.95); background-image: linear-gradient(135deg, rgba(10,31,61,0.95), rgba(26,58,108,0.95)); color: var(--light); font-size: 13px; line-height: 1.6; border-radius: 12px; border: 2px solid var(--accent); pointer-events: none; opacity: 0; transition: opacity 0.25s ease; backdrop-filter: blur(8px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+        .explain-overlay.visible { opacity: 1; }
+        .explain-overlay h4 { color: var(--accent); margin-bottom: 8px; font-size: 14px; }
+        .explain-overlay ul { margin: 8px 0 0 16px; padding: 0; }
+        .explain-overlay li { margin-bottom: 4px; }
+        .explain-overlay .hint { color: var(--success); font-size: 11px; margin-top: 8px; display: block; }
+        .explain-btn { position: fixed; bottom: 50px; right: 10px; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; font-size: 20px; border: none; box-shadow: 0 2px 10px rgba(0,0,0,0.3); background: linear-gradient(145deg, var(--accent), var(--accent-dark)); color: var(--primary); z-index: 10002; }
+        .explain-btn:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(255,215,0,0.5); }
+        .notification-action-btn { background: rgba(0,255,136,0.2); border: 1px solid var(--success); color: var(--success); padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; margin-top: 6px; transition: all 0.2s; }
+        .notification-action-btn:hover { background: var(--success); color: var(--primary); }
+        .notification-list-item .actions { display: flex; gap: 6px; margin-top: 8px; }
+        .notification-list-item .actions button { flex: 1; }
+        .search-result-item { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid rgba(255,215,0,0.1); transition: background 0.2s; }
+        .search-result-item:hover { background: rgba(255,215,0,0.15); }
+        .search-result-id { color: var(--accent); font-weight: 600; margin-right: 8px; }
+        .search-result-generic { color: var(--light); font-weight: 500; margin-right: 8px; }
+        .search-result-brand { color: var(--gray); font-size: 0.85em; }
+        /* Ending Balance button – positioned beside Stock Accuracy */
+        .ending-balance-btn { background: rgba(0,255,136,0.15); border: 2px solid var(--success); color: var(--success); padding: 10px 18px; border-radius: 10px; font-size: 0.9rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s; }
+        .ending-balance-btn:hover { background: var(--success); color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,255,136,0.3); }
+        .ending-balance-btn i { font-size: 1.1rem; }
+        /* New: dashboard row for stock accuracy & ending balance side by side */
+        .accuracy-balance-row {
+            display: flex;
+            align-items: stretch;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .accuracy-balance-row .dashboard-card {
+            flex: 1;
+            margin: 0;
+        }
+        .accuracy-balance-row .ending-balance-wrapper {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+        }
+        @media (max-width: 768px) {
+            .accuracy-balance-row {
+                flex-wrap: wrap;
+            }
+            .accuracy-balance-row .ending-balance-wrapper {
+                width: 100%;
+                justify-content: center;
+                margin-top: 0.5rem;
+            }
+        }
+
+        /* ========== SUPERVISOR / KPI STYLES ========== */
+        .supervisor-section { margin-top: 1rem; padding: 1rem; background: rgba(10,31,61,0.95); border-radius: 15px; border: 1px solid rgba(255,215,0,0.2); }
+        .supervisor-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.8rem; }
+        .supervisor-header h3 { color: var(--accent); display: flex; align-items: center; gap: 8px; font-size: 1rem; }
+        .supervisor-controls { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+        .supervisor-controls select, .supervisor-controls input { width: auto; min-width: 150px; padding: 0.4rem 0.6rem; font-size: 0.8rem; }
+        .kebele-group-container { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.8rem; }
+        .kebele-group-card { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 0.8rem; border-left: 4px solid var(--accent); }
+        .kebele-group-card h4 { color: var(--accent); font-size: 0.85rem; margin-bottom: 0.4rem; }
+        .kebele-group-card ul { list-style: none; padding: 0; margin: 0; }
+        .kebele-group-card li { font-size: 0.8rem; padding: 0.2rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; }
+        .rank-badge { background: var(--accent); color: var(--primary); padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; }
+        .rank-badge.gold { background: #ffd700; }
+        .rank-badge.silver { background: #c0c0c0; }
+        .rank-badge.bronze { background: #cd7f32; }
+        .kobo-nav-btn { background: rgba(0,255,136,0.15); border: 2px solid var(--success); color: var(--success); padding: 10px 18px; border-radius: 10px; font-size: 0.9rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s; }
+        .kobo-nav-btn:hover { background: var(--success); color: var(--primary); transform: translateY(-2px); }
+        .section-nav-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0.5rem 0; }
+        .section-nav-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,215,0,0.3); color: var(--light); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; }
+        .section-nav-btn:hover { background: rgba(255,215,0,0.2); }
+        .section-nav-btn.active { background: var(--accent); color: var(--primary); border-color: var(--accent); }
+        .championship-table { width: 100%; font-size: 0.8rem; }
+        .championship-table th, .championship-table td { padding: 0.5rem; text-align: left; }
+        .championship-table .gold-row { background: rgba(255,215,0,0.15); }
+        .championship-table .silver-row { background: rgba(192,192,192,0.1); }
+        .championship-table .bronze-row { background: rgba(205,127,50,0.1); }
+        .service-nav-container { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.8rem; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 10px; }
+        .service-nav-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,215,0,0.2); color: var(--light); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; }
+        .service-nav-btn:hover { background: rgba(255,215,0,0.15); }
+        .service-nav-btn.active { background: var(--accent); color: var(--primary); border-color: var(--accent); }
+        .all-users-section .nav-btn.service-hidden { display: none !important; }
+        .kpi-dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1rem 0; }
+        .kpi-card { background: rgba(10,31,61,0.95); border-radius: 12px; padding: 1rem; border: 1px solid rgba(255,215,0,0.2); cursor: pointer; transition: all 0.3s; }
+        .kpi-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+        .kpi-card h3 { color: var(--accent); font-size: 0.85rem; margin-bottom: 0.5rem; }
+        .kpi-card .value { font-size: 1.3rem; font-weight: 700; color: var(--light); }
+        .kpi-card .sub-value { font-size: 0.7rem; color: var(--gray); }
+        .ranking-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0; }
+        .ranking-tab { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,215,0,0.3); color: var(--light); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+        .ranking-tab:hover { background: rgba(255,215,0,0.2); }
+        .ranking-tab.active { background: var(--accent); color: var(--primary); border-color: var(--accent); }
+        /* Keep overlay/header/footer elements always visible & accessible */
+        .fullscreen-toggle, .share-icon, .settings-icon, .update-icon, .idg-footer, .action-buttons-corner, .notification-center { pointer-events: auto; }
+        .full-screen-mode, .container { padding-bottom: 110px; }
+        /* NEW: Sort control styles */
+        .sort-control { display: flex; align-items: center; gap: 4px; }
+        .sort-control select { width: auto; min-width: 100px; padding: 0.4rem 0.6rem; font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+<!-- MASTER PASSWORD OVERLAY - MASKED -->
+<div id="masterOverlay" class="master-overlay"><div class="master-box"><h2><i class="fas fa-lock"></i> DEVICE VERIFICATION</h2><p style="margin-bottom:15px;color:var(--light);">🔒 Master password is pre-configured</p><p style="margin-bottom:15px;font-size:12px;color:var(--gray);">System verified. Click Continue to access.</p><button id="verifyMasterBtn">VERIFY & CONTINUE</button><div id="masterError" class="error-msg"></div></div></div>
+<div class="fullscreen-toggle" id="fullscreenToggle" data-explain="fullscreenToggle"><i class="fas fa-expand"></i></div>
+<div class="update-icon" id="updateIcon" data-explain="updateIcon" title="Check for Updates"><i class="fas fa-sync-alt"></i><span class="update-badge hidden" id="updateBadge">!</span></div>
+<div class="share-icon" id="shareIcon" data-explain="shareIcon"><i class="fab fa-telegram-plane"></i></div>
+<div class="settings-icon" id="settingsIcon" data-explain="settingsIcon"><i class="fas fa-cog"></i></div>
+<div class="action-buttons-corner">
+  <div class="import-dropdown" id="importDropdown">
+    <button class="corner-btn green" id="importExportBtn" data-explain="importExportBtn"><i class="fas fa-file-import"></i></button>
+    <div class="import-dropdown-content">
+      <a id="importExcelBtn" data-explain="importExcelBtn"><i class="fas fa-file-excel"></i> Import Excel (.xlsx)</a>
+      <a id="importWordBtn" data-explain="importWordBtn"><i class="fas fa-file-word"></i> Import Word (.docx)</a>
+    </div>
+  </div>
+  <!-- Export button now always active -->
+  <button class="corner-btn red" id="exportDataBtn" data-explain="exportDataBtn"><i class="fas fa-file-export"></i></button>
+</div>
+<div id="exportDropdown" style="display:none; position:fixed; bottom:105px; left:10px; background:var(--primary); border:1px solid var(--accent); border-radius:8px; z-index:10002;">
+  <div style="padding:10px;">
+    <h4 style="color:var(--accent); margin-bottom:10px;">Export Data</h4>
+    <select id="exportTypeSelect" style="width:100%; margin-bottom:10px;" data-explain="exportTypeSelect">
+      <option value="inventory">Inventory</option>
+      <option value="sales">Sales</option>
+      <option value="deductions">Deductions</option>
+    </select>
+    <div id="exportFilters" style="margin-bottom:10px;">
+      <input type="text" id="exportItemFilter" placeholder="Item name filter" style="width:100%; margin-bottom:5px;" data-explain="exportItemFilter">
+      <input type="text" id="exportCategoryFilter" placeholder="Category filter" style="width:100%; margin-bottom:5px;" data-explain="exportCategoryFilter">
+      <div class="time-filter-group" style="margin-top:5px;">
+        <button class="time-filter-btn export-time-filter" data-period="daily" data-explain="exportTimeFilter">Daily</button>
+        <button class="time-filter-btn export-time-filter" data-period="weekly" data-explain="exportTimeFilter">Weekly</button>
+        <button class="time-filter-btn export-time-filter" data-period="monthly" data-explain="exportTimeFilter">Monthly</button>
+        <button class="time-filter-btn export-time-filter" data-period="quarterly" data-explain="exportTimeFilter">Quarterly</button>
+        <button class="time-filter-btn export-time-filter" data-period="semiannual" data-explain="exportTimeFilter">Semi-Annual</button>
+        <button class="time-filter-btn export-time-filter" data-period="yearly" data-explain="exportTimeFilter">Yearly</button>
+        <button class="time-filter-btn export-time-filter" data-period="custom" data-explain="exportTimeFilter">Custom</button>
+      </div>
+      <div id="exportCustomDateRange" style="display:none; margin-top:8px;">
+        <input type="date" id="exportStartDate" data-explain="exportStartDate"> to <input type="date" id="exportEndDate" data-explain="exportEndDate">
+      </div>
+    </div>
+    <div class="btn-group" style="margin-top:5px;">
+      <button id="exportExcelBtn" class="btn btn-primary" style="padding:5px 10px;" data-explain="exportExcelBtn"><i class="fas fa-file-excel"></i> Excel</button>
+      <button id="exportWordBtn" class="btn btn-secondary" style="padding:5px 10px;" data-explain="exportWordBtn"><i class="fas fa-file-word"></i> Word</button>
+    </div>
+  </div>
+</div>
+<div class="idg-footer">IDG, ETHIOPIA, 0918203416</div>
+<div class="welcome-page" id="welcomePage">
+  <div class="welcome-content">
+    <h1 class="welcome-title editable-text" id="editableTitle" data-editable="true" data-explain="editableTitle">Eras-Birhan Pharmaceuticals Stock Management System (EBP-SMS)</h1>
+    <div class="welcome-owner editable-text" id="editableOwner" data-editable="true" data-explain="editableOwner">EBP‑SMS</div>
+    <div class="login-form">
+      <div class="login-input-group">
+        <label id="loginTypeLabel" data-explain="loginTypeLabel"><i class="fas fa-user-tag"></i> Login Type</label>
+        <select id="loginType" required data-explain="loginType">
+          <option value="">Select...</option>
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="login-input-group">
+        <label id="passwordLabel" data-explain="passwordLabel"><i class="fas fa-lock"></i> Password</label>
+        <input type="password" id="password" placeholder="Enter password..." data-explain="passwordInput">
+      </div>
+      <button class="login-btn" id="loginBtn" data-explain="loginBtn"><i class="fas fa-sign-in-alt"></i><span>Login</span></button>
+      <!-- NEW: Footer text below login button -->
+      <div class="login-footer-text" id="loginFooterText">Assefa Gashaye, +251918203416</div>
+    </div>
+  </div>
+</div>
+<div class="container" id="mainContainer">
+  <header>
+    <div class="logo">
+      <div class="logo-icon"><i class="fas fa-pills"></i></div>
+      <div class="logo-text">
+        <h1 class="editable-text" id="mainHeaderTitle" data-editable="true" data-explain="mainHeaderTitle">Eras-Birhan Pharmaceuticals Stock Management System (EBP-SMS)</h1>
+      </div>
+    </div>
+  </header>
+  <div class="nav-buttons">
+    <button class="nav-btn customizable-btn" id="navRegisterStock" data-btn-id="register" data-explain="navRegisterStock"><i class="fas fa-pills"></i><span class="btn-text">Register</span></button>
+    <button class="nav-btn customizable-btn" id="navSales" data-btn-id="sales" data-explain="navSales"><i class="fas fa-shopping-cart"></i><span class="btn-text">Sales</span></button>
+    <button class="nav-btn customizable-btn" id="navCurrentStock" data-btn-id="inventory" data-explain="navCurrentStock"><i class="fas fa-list-alt"></i><span class="btn-text">Inventory</span></button>
+    <button class="nav-btn customizable-btn" id="navReduceStock" data-btn-id="deduct" data-explain="navReduceStock"><i class="fas fa-arrow-up"></i><span class="btn-text">Deduct</span></button>
+    <button class="nav-btn customizable-btn admin-only" id="navReview" data-btn-id="review" data-explain="navReview"><i class="fas fa-chart-bar"></i><span class="btn-text">Review</span></button>
+    <button class="nav-btn customizable-btn admin-only" id="navAudit" data-btn-id="audit" data-explain="navAudit"><i class="fas fa-shield-alt"></i><span class="btn-text">Audit</span></button>
+    <!-- Supervisor and KoboTool buttons removed as requested -->
+  </div>
+  <div class="pharmacy-info-container">
+    <div class="pharmacy-header">
+      <h2 class="editable-text" id="pharmacyHeaderName" data-editable="true" data-explain="pharmacyHeaderName">Eras-Birhan Pharmaceuticals Stock Management System (EBP-SMS)</h2>
+    </div>
+    <div class="owner-name editable-text" id="pharmacyOwnerName" data-editable="true" data-explain="pharmacyOwnerName">Assefa Gashaye, +251918203416</div>
+    <div style="text-align:center; margin-top:2rem; color:var(--gray); font-size:1.2rem;">
+      <p>© 2026 Eras‑Birhan Pharmaceuticals</p>
+    </div>
+  </div>
+</div>
+<div class="notification-center" id="notificationCenter" data-explain="notificationCenter">
+  <div class="notification-counter critical" id="criticalCounter" data-type="critical" data-explain="criticalCounter"><span class="count">0</span><span class="label">Urgent</span></div>
+  <div class="notification-counter warning" id="warningCounter" data-type="warning" data-explain="warningCounter"><span class="count">0</span><span class="label">Warnings</span></div>
+  <div class="notification-counter info" id="infoCounter" data-type="info" data-explain="infoCounter"><span class="count">0</span><span class="label">Updates</span></div>
+</div>
+<div class="notification-panel" id="notificationPanel">
+  <div class="notification-panel-header">
+    <h3 id="notificationPanelTitle">Notifications</h3>
+    <button class="close-full-screen" onclick="if(window.ultraStock) window.ultraStock.closeNotificationPanel()"><i class="fas fa-times"></i></button>
+  </div>
+  <div id="notificationList"></div>
+</div>
+<div class="toast-container" id="toastContainer"></div>
+<audio id="notificationSound" loop preload="auto"><source src="data:audio/mp3;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gR2VuZXJpYyBTb3VuZCBFZmZlY3RzAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQxAAAAAAAAAAAAAAAAAAAAAAABJxBTU0zLTEwMAAAAAAAAAPAAAABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQxAAAAAAAAAAAAAAAAAAAAAAABJxBTU0zLTEwMAAAAAAAAAPAAAABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" type="audio/mp3"></audio>
+<!-- SHARE MODAL -->
+<div class="share-modal" id="shareModal">
+    <div class="share-container">
+        <div class="share-header">
+            <h2><i class="fab fa-telegram-plane"></i> Share Pharmacy Report to Telegram</h2>
+            <button class="close-full-screen" id="closeShareModal" data-explain="closeShareModal"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="amharic-info"><i class="fas fa-info-circle"></i> የፋርማሲ/አጠቃላይ የመድሀኒት መረጃ ለአሰፋ ጋሻዬ (@assegas) በማጋራት ከሌሎች ፋርማሲዎች ጋር የመድሀኒት ግዢ እና ሽያጭ ልውውጥ ማድረግ ይቻላል።<br><small>Pharmacy/general drug information can be shared to Assefa Gashaye to facilitate medicine purchasing and selling exchange with other pharmaceutical companies.</small></div>
+        <div class="form-grid" style="margin-bottom:1rem;">
+          <div class="form-group">
+            <label data-explain="shareRecipientLabel"><i class="fab fa-telegram-plane"></i> Recipient (Telegram @assegas) *</label>
+            <input type="text" id="shareRecipient" value="@assegas" readonly style="background:rgba(255,255,255,0.05); cursor:not-allowed;" data-explain="shareRecipient">
+            <small style="color:var(--gray);">Fixed to @assegas for secure sharing</small>
+          </div>
+          <div class="form-group">
+            <label data-explain="shareSenderNameLabel"><i class="fas fa-user-edit"></i> Sender Name and Phone *</label>
+            <input type="text" id="shareSenderName" placeholder="e.g., John Doe - 0912345678" required data-explain="shareSenderName">
+            <small style="color:var(--gray);">Enter your full name and phone number</small>
+          </div>
+          <div class="form-group">
+            <label data-explain="shareExportTypeLabel"><i class="fas fa-file-export"></i> Export Type</label>
+            <select id="shareExportType" data-explain="shareExportType">
+              <option value="telegram">Telegram Message (Text)</option>
+              <option value="csv">CSV Export</option>
+              <option value="json">JSON Export</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label data-explain="shareBranchFilterLabel"><i class="fas fa-filter"></i> Filter by Branch</label>
+            <select id="shareBranchFilter" data-explain="shareBranchFilter">
+              <option value="all">All Branches</option>
+              <option value="pharmacy">Pharmacy</option>
+              <option value="wholesaler">Wholesaler</option>
+            </select>
+          </div>
+        </div>
+        <div class="search-filter">
+          <div class="search-box" data-explain="shareSearchInput">
+            <i class="fas fa-search"></i>
+            <input type="text" id="shareSearchInput" placeholder="Search items...">
+          </div>
+          <!-- NEW: Sort control for share table -->
+          <div class="sort-control">
+            <select id="shareSortSelect" data-explain="shareSortSelect">
+              <option value="default">Default Sort</option>
+              <option value="name-asc">Name A → Z</option>
+              <option value="name-desc">Name Z → A</option>
+            </select>
+          </div>
+          <div class="filter-select">
+            <select id="shareCategoryFilter" data-explain="shareCategoryFilter">
+              <option value="">All Categories</option>
+            </select>
+          </div>
+          <div class="filter-select">
+            <select id="shareStatusFilter" data-explain="shareStatusFilter">
+              <option value="">All Status</option>
+              <option value="low">Low Stock</option>
+              <option value="expiring">Expiring Soon</option>
+              <option value="expired">Expired</option>
+              <option value="overstock">Overstock</option>
+            </select>
+          </div>
+          <button class="btn btn-secondary" id="shareSelectAllBtn" data-explain="shareSelectAllBtn"><i class="fas fa-check-double"></i> Select All</button>
+          <button class="btn btn-secondary" id="shareClearAllBtn" data-explain="shareClearAllBtn"><i class="fas fa-times"></i> Clear All</button>
+        </div>
+        <div class="share-stats">
+          <div class="share-stat-item"><span class="label">Selected Items:</span><span class="value" id="shareSelectedCount">0</span></div>
+          <div class="share-stat-item"><span class="label">Total Items:</span><span class="value" id="shareTotalCount">0</span></div>
+          <div class="share-stat-item"><span class="label">Total Value:</span><span class="value" id="shareTotalValue">ETB ***</span></div>
+          <div class="share-stat-item"><span class="label">Expiring Soon:</span><span class="value" id="shareExpiringCount">0</span></div>
+          <div class="share-stat-item"><span class="label">Low Stock:</span><span class="value" id="shareLowStockCount">0</span></div>
+        </div>
+        <div class="share-table-wrapper">
+          <table class="share-table" id="shareTable">
+            <thead>
+              <tr>
+                <th class="checkbox-cell"><input type="checkbox" id="shareMasterCheckbox" data-explain="shareMasterCheckbox"></th>
+                <th>Generic Name</th><th>Brand Name</th><th>Batch #</th><th>Base Unit</th><th>Reg Unit</th><th>Disp Unit</th>
+                <th>Base Qty</th><th>Avail Qty</th><th>Unit Price*</th><th>Total*</th><th>Cost*</th><th>Selling*</th>
+                <th>Expiry Date</th><th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="shareTableBody"></tbody>
+          </table>
+        </div>
+        <div class="btn-group" style="margin-top:1rem;">
+          <button class="btn btn-success" id="shareTelegramBtn" data-explain="shareTelegramBtn"><i class="fab fa-telegram-plane"></i> Share to Telegram (@assegas)</button>
+          <button class="btn btn-primary" id="shareCopyPreviewBtn" data-explain="shareCopyPreviewBtn"><i class="fas fa-copy"></i> Copy Message</button>
+          <button class="btn btn-secondary" id="shareExportBtn" data-explain="shareExportBtn"><i class="fas fa-download"></i> Export Selected</button>
+        </div>
+        <div class="form-container" style="margin-top:1rem;">
+          <h3 style="color:var(--accent);"><i class="fas fa-history"></i> Share History</h3>
+          <div class="table-container" style="max-height:200px;">
+            <table id="shareHistoryTable">
+              <thead><tr><th>Date</th><th>Recipient</th><th>Items</th><th>Type</th><th>Status</th></tr></thead>
+              <tbody id="shareHistoryBody"></tbody>
+            </table>
+          </div>
+        </div>
+    </div>
+</div>
+<div class="settings-panel" id="settingsPanel">
+  <div class="settings-container">
+    <div class="settings-header">
+      <h2 data-explain="settingsHeader"><i class="fas fa-cog"></i> System Settings</h2>
+      <button class="close-full-screen" id="closeSettings" data-explain="closeSettings"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="settings-section">
+      <h3>Stock Alert Thresholds</h3>
+      <div class="settings-row">
+        <div><label data-explain="lowStockThresholdLabel">Low Stock Threshold (%)</label><input type="number" id="lowStockThreshold" value="20" min="1" data-explain="lowStockThreshold"></div>
+        <div><label data-explain="expiryWarningDaysLabel">Expiry Warning (30 days)</label><input type="number" id="expiryWarningDays" value="30" min="1" data-explain="expiryWarningDays"></div>
+        <div><label data-explain="overstockAlertLabel">Overstock Alert %</label><input type="number" id="overstockAlert" value="150" min="100" data-explain="overstockAlert"></div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <h3>Pricing & Calculations</h3>
+      <div class="settings-row">
+        <div><label data-explain="defaultMarkupLabel">Default Markup %</label><input type="number" id="defaultMarkup" value="50.0" min="0" step="0.1" data-explain="defaultMarkup"></div>
+        <div><label data-explain="defaultVATLabel">Default VAT %</label><input type="number" id="defaultVAT" value="15" min="0" step="0.1" data-explain="defaultVAT"></div>
+        <div><label data-explain="profitMarginAlertLabel">Profit Margin Alert %</label><input type="number" id="profitMarginAlert" value="10" min="0" data-explain="profitMarginAlert"></div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <h3>Units Management</h3>
+      <div class="settings-row">
+        <div><label data-explain="baseUnitsListLabel">Base Units (comma-separated)</label><input type="text" id="baseUnitsList" value="tablet,capsule,ml,mg,g,piece,unit,dose,injection,patch" data-explain="baseUnitsList"></div>
+        <div><label data-explain="displayUnitsListLabel">Display Units (comma-separated)</label><input type="text" id="displayUnitsList" value="tablet,capsule,piece,strip,bottle,pack,sachet,vial,ampoule" data-explain="displayUnitsList"></div>
+        <div><label data-explain="registeredUnitsListLabel">Registered Units (comma-separated)</label><input type="text" id="registeredUnitsList" value="box,strip,bottle,pack,carton,jar,tube,sachet,vial,ampoule" data-explain="registeredUnitsList"></div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <h3>Customizable Buttons</h3>
+      <div class="settings-row">
+        <div><label data-explain="btnRegisterTextLabel">Register Button Text</label><input type="text" id="btnRegisterText" value="Register" data-explain="btnRegisterText"></div>
+        <div><label data-explain="btnSalesTextLabel">Sales Button Text</label><input type="text" id="btnSalesText" value="Sales" data-explain="btnSalesText"></div>
+        <div><label data-explain="btnInventoryTextLabel">Inventory Button Text</label><input type="text" id="btnInventoryText" value="Inventory" data-explain="btnInventoryText"></div>
+        <div><label data-explain="btnDeductTextLabel">Deduct Button Text</label><input type="text" id="btnDeductText" value="Deduct" data-explain="btnDeductText"></div>
+        <div><label data-explain="btnReviewTextLabel">Review Button Text</label><input type="text" id="btnReviewText" value="Review" data-explain="btnReviewText"></div>
+        <div><label data-explain="btnAuditTextLabel">Audit Button Text</label><input type="text" id="btnAuditText" value="Audit" data-explain="btnAuditText"></div>
+        <div><label data-explain="btnSupervisorTextLabel">Supervisor Button Text</label><input type="text" id="btnSupervisorText" value="Supervisor" data-explain="btnSupervisorText"></div>
+        <div><label data-explain="btnKoboTextLabel">KoboTool Button Text</label><input type="text" id="btnKoboText" value="KoboTool" data-explain="btnKoboText"></div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <h3>ADMIN VISIBILITY CONTROLS (Telegram Share Report - Masking Toggles)</h3>
+      <div class="visibility-toggle-group">
+        <label data-explain="maskUnitPriceLabel"><input type="checkbox" id="maskUnitPrice" checked data-explain="maskUnitPrice"> Mask Unit Price column in share report</label>
+        <label data-explain="maskTotalCostLabel"><input type="checkbox" id="maskTotalCost" checked data-explain="maskTotalCost"> Mask Total Cost column in share report</label>
+        <label data-explain="maskSellingPriceLabel"><input type="checkbox" id="maskSellingPrice" checked data-explain="maskSellingPrice"> Mask Selling Price column in share report</label>
+      </div>
+    </div>
+    <div class="settings-section">
+      <h3><i class="fas fa-shield-alt" style="color:var(--accent);"></i> Cryptographic Security & Hardening</h3>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+        <span style="background:rgba(0,255,136,0.15); border:1px solid var(--success); color:var(--success); padding:4px 8px; border-radius:6px; font-size:11px; font-weight:600;"><i class="fas fa-lock"></i> AES-256-GCM Hardware Encrypted</span>
+        <span style="background:rgba(255,215,0,0.15); border:1px solid var(--accent); color:var(--accent); padding:4px 8px; border-radius:6px; font-size:11px; font-weight:600;"><i class="fas fa-key"></i> PBKDF2-HMAC-SHA-256 (100k iter)</span>
+        <span style="background:rgba(141,160,199,0.15); border:1px solid var(--gray); color:var(--light); padding:4px 8px; border-radius:6px; font-size:11px; font-weight:600;"><i class="fas fa-link"></i> SHA-256 Tamper-Evident Chain</span>
+      </div>
+      <div class="settings-row">
+        <div><label data-explain="userPasswordLabel">User Password</label><input type="password" id="userPassword" value="123456" data-explain="userPassword"></div>
+        <div><label data-explain="adminPasswordLabel">Admin Password</label><input type="password" id="adminPassword" value="kpi2123" data-explain="adminPassword"></div>
+      </div>
+      <div style="margin-top:12px; padding:10px; background:rgba(0,0,0,0.2); border-radius:8px; border:1px solid rgba(255,215,0,0.2);">
+        <div style="font-size:12px; color:var(--accent); font-weight:bold; margin-bottom:4px;">Current Terminal Hardware UUID:</div>
+        <div id="currentDeviceUuidDisplay" style="font-family:monospace; font-size:12px; color:var(--light); word-break:break-all;">Loading...</div>
+        <div style="font-size:12px; color:var(--accent); font-weight:bold; margin-top:8px; margin-bottom:4px;">Authorized Hardware Terminals:</div>
+        <div id="authorizedDevicesList"></div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <h3>Data Management & Rollback Protection</h3>
+      <div class="settings-row">
+        <button class="btn btn-primary" id="backupData" data-explain="backupData"><i class="fas fa-download"></i> Backup Data</button>
+        <button class="btn btn-secondary" id="restoreData" data-explain="restoreData"><i class="fas fa-upload"></i> Restore Data</button>
+        <button class="btn btn-secondary" id="rollbackBtn" style="border:1px solid var(--warning); color:var(--warning);" data-explain="rollbackBtn"><i class="fas fa-undo"></i> Rollback to Pre-Restore State</button>
+      </div>
+      <div id="safetySnapshotStatus" style="font-size:11px; margin-top:6px; color:var(--gray);"></div>
+    </div>
+    <div class="settings-section">
+      <h3>Branding & Text</h3>
+      <div class="settings-row">
+        <div><label data-explain="editPharmacyNameLabel">Pharmacy Name</label><input type="text" id="editPharmacyName" value="Eras-Birhan Pharmaceuticals" data-explain="editPharmacyName"></div>
+        <div><label data-explain="editBrandNameLabel">Brand Name (EBP)</label><input type="text" id="editBrandName" value="EBP-SMS" data-explain="editBrandName"></div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <h3>Danger Zone</h3>
+      <button class="btn btn-secondary" id="clearAllData" style="background:rgba(255,68,68,0.1); color:var(--danger);" data-explain="clearAllData">Clear All Data</button>
+    </div>
+    <div style="text-align:right; margin-top:1rem;">
+      <button class="btn btn-primary" id="saveSettings" data-explain="saveSettings">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUPERVISOR PAGE (removed as requested) -->
+<!-- KOBOTOOL PAGE (removed as requested) -->
+
+<!-- REGISTER STOCK PAGE -->
+<div class="full-screen-mode" id="registerStockPage" data-explain="registerStockPage">
+  <div class="full-screen-header">
+    <h2 data-explain="registerStockHeader"><i class="fas fa-pills"></i> Register Stock (<span id="registerBranchLabel">Pharmacy</span>)</h2>
+    <div class="time-filter-group">
+      <button class="time-filter-btn register-time-filter" data-period="daily" data-explain="registerTimeFilter">Daily</button>
+      <button class="time-filter-btn register-time-filter" data-period="weekly" data-explain="registerTimeFilter">Weekly</button>
+      <button class="time-filter-btn register-time-filter" data-period="monthly" data-explain="registerTimeFilter">Monthly</button>
+      <button class="time-filter-btn register-time-filter" data-period="quarterly" data-explain="registerTimeFilter">Quarterly</button>
+      <button class="time-filter-btn register-time-filter" data-period="semiannual" data-explain="registerTimeFilter">Semi-Annual</button>
+      <button class="time-filter-btn register-time-filter" data-period="yearly" data-explain="registerTimeFilter">Yearly</button>
+      <div class="custom-date-range">
+        <input type="date" id="registerStartDate" placeholder="Start" data-explain="registerStartDate">
+        <input type="date" id="registerEndDate" placeholder="End" data-explain="registerEndDate">
+      </div>
+    </div>
+    <button class="close-full-screen" data-close="registerStockPage" data-explain="closeRegisterPage"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="form-container">
+    <form id="stockForm">
+      <div class="form-grid">
+        <div class="form-group">
+          <label data-explain="itemIdLabel"><i class="fas fa-hashtag"></i> Item ID</label>
+          <input type="text" id="itemIdInput" placeholder="Auto-generated or custom ID" autocomplete="off" list="existingItemIdsList" data-explain="itemIdInput">
+          <datalist id="existingItemIdsList"></datalist>
+        </div>
+        <div class="form-group">
+          <label data-explain="itemNameLabel"><i class="fas fa-capsules"></i> Generic Name *</label>
+          <input type="text" id="itemName" required placeholder="Enter generic name" list="itemNameList" autocomplete="off" data-explain="itemName">
+          <datalist id="itemNameList"></datalist>
+        </div>
+        <div class="form-group">
+          <label data-explain="brandNameLabel"><i class="fas fa-trademark"></i> Brand Name</label>
+          <input type="text" id="brandName" placeholder="Brand/Trade name" list="brandNameList" data-explain="brandName">
+          <datalist id="brandNameList"></datalist>
+        </div>
+        <div class="form-group">
+          <label data-explain="categoryLabel"><i class="fas fa-tags"></i> Category</label>
+          <input list="categoryList" id="category" placeholder="Type or select category" autocomplete="off" data-explain="category">
+          <datalist id="categoryList"></datalist>
+        </div>
+        <div class="form-group">
+          <label data-explain="itemTypeLabel"><i class="fas fa-tag"></i> Type</label>
+          <input type="text" id="itemType" placeholder="e.g., Medicine, Device, Supplement" list="itemTypeList" autocomplete="off" data-explain="itemType">
+          <datalist id="itemTypeList"></datalist>
+        </div>
+        <div class="form-group">
+          <label data-explain="unitSelectorLabel"><i class="fas fa-balance-scale"></i> Unit *</label>
+          <select id="unitSelector" required data-explain="unitSelector">
+            <option value="">Select unit type...</option>
+            <option value="baseUnit">Base Unit</option>
+            <option value="registeredUnit">Register Unit</option>
+            <option value="displayUnit">Display Unit</option>
+          </select>
+        </div>
+        <div class="form-group" id="baseUnitGroup" style="display:none;">
+          <label data-explain="baseUnitLabel"><i class="fas fa-balance-scale"></i> Base Unit Value *</label>
+          <input type="text" id="baseUnit" list="baseUnitList" placeholder="e.g., tablet, ml" autocomplete="off" data-explain="baseUnit">
+          <datalist id="baseUnitList"></datalist>
+        </div>
+        <div class="form-group" id="registeredUnitGroup" style="display:none;">
+          <label data-explain="registeredUnitLabel"><i class="fas fa-box"></i> Register Unit Value *</label>
+          <input list="registeredUnitList" id="registeredUnit" placeholder="e.g., box, strip" autocomplete="off" data-explain="registeredUnit">
+          <datalist id="registeredUnitList"></datalist>
+        </div>
+        <div class="form-group" id="displayUnitGroup" style="display:none;">
+          <label data-explain="displayUnitLabel"><i class="fas fa-eye"></i> Display Unit Value *</label>
+          <input list="displayUnitList" id="displayUnit" placeholder="e.g., tablet, strip" autocomplete="off" data-explain="displayUnit">
+          <datalist id="displayUnitList"></datalist>
+        </div>
+        <div class="form-group">
+          <label data-explain="allowFractionalDisplayLabel"><i class="fas fa-divide"></i> Allow Fractional Display</label>
+          <select id="allowFractionalDisplay" data-explain="allowFractionalDisplay">
+            <option value="false">No (Whole units only)</option>
+            <option value="true">Yes (Allow fractions)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label data-explain="qtyDisplayLabel"><i class="fas fa-calculator"></i> Quantity *</label>
+          <input type="number" id="qtyDisplay" min="0" step="0.01" value="0" placeholder="Enter quantity" data-explain="qtyDisplay">
+        </div>
+        <input type="hidden" id="qtyBase" value="0">
+        <input type="hidden" id="qtyRegister" value="0">
+        <input type="hidden" id="registeredToBaseFactor" value="1">
+        <input type="hidden" id="displayToBaseFactor" value="1">
+        <div class="form-group">
+          <label data-explain="purchasePricePerDisplayLabel"><i class="fas fa-tag"></i> Purchase Price *</label>
+          <input type="number" id="purchasePricePerDisplay" min="0" step="0.01" required data-explain="purchasePricePerDisplay">
+        </div>
+        <div class="form-group">
+          <label data-explain="markupLabel"><i class="fas fa-percentage"></i> Markup % *</label>
+          <input type="number" id="markup" min="0" step="0.1" value="50.0" required data-explain="markup">
+        </div>
+        <div class="form-group">
+          <label data-explain="discountPercentLabel"><i class="fas fa-percent"></i> Discount %</label>
+          <input type="number" id="discountPercent" min="0" max="100" step="0.1" value="0" data-explain="discountPercent">
+        </div>
+        <div class="form-group">
+          <label data-explain="sellingPricePerDisplayLabel"><i class="fas fa-money-bill-wave"></i> Selling Price *</label>
+          <input type="number" id="sellingPricePerDisplay" min="0" step="0.01" required data-explain="sellingPricePerDisplay">
+        </div>
+        <div class="form-group">
+          <label data-explain="batchNumberLabel"><i class="fas fa-barcode"></i> Batch Number *</label>
+          <input type="text" id="batchNumber" required list="batchNumberList" autocomplete="off" data-explain="batchNumber">
+          <datalist id="batchNumberList"></datalist>
+        </div>
+        <div class="form-group">
+          <label data-explain="expiryDateLabel"><i class="fas fa-calendar-alt"></i> Expiry Date *</label>
+          <input type="date" id="expiryDate" required data-explain="expiryDate">
+        </div>
+        <div class="form-group">
+          <label data-explain="supplierLabel"><i class="fas fa-truck"></i> Supplier</label>
+          <input list="supplierList" id="supplier" placeholder="Supplier name" autocomplete="off" data-explain="supplier">
+          <datalist id="supplierList"></datalist>
+        </div>
+        <div class="form-group">
+          <label data-explain="invoiceNumberLabel"><i class="fas fa-file-invoice"></i> Invoice Number</label>
+          <input type="text" id="invoiceNumber" placeholder="Invoice number" list="invoiceNumberList" autocomplete="off" data-explain="invoiceNumber">
+          <datalist id="invoiceNumberList"></datalist>
+        </div>
+        <div class="form-group">
+          <label data-explain="registrantLabel"><i class="fas fa-user-check"></i> Registrant *</label>
+          <input type="text" id="registrant" required list="registrantList" autocomplete="off" data-explain="registrant">
+          <datalist id="registrantList"></datalist>
+        </div>
+        <div class="form-group">
+          <label data-explain="branchLabel"><i class="fas fa-store"></i> Branch *</label>
+          <select id="branch" required data-explain="branch">
+            <option value="pharmacy">Eras‑Birhan Pharmacy</option>
+            <option value="wholesaler">Eras‑Birhan Wholesaler</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label data-explain="warehouseLabel"><i class="fas fa-warehouse"></i> Warehouse</label>
+          <select id="warehouse" data-explain="warehouse">
+            <option value="main">Main Warehouse</option>
+            <option value="branch">Branch Warehouse</option>
+            <option value="cold">Cold Storage</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label data-explain="storageConditionLabel"><i class="fas fa-thermometer-half"></i> Storage Conditions</label>
+          <select id="storageCondition" data-explain="storageCondition">
+            <option value="ambient">Room Temperature</option>
+            <option value="refrigerated">Refrigerated (2-8°C)</option>
+            <option value="frozen">Frozen (-20°C)</option>
+            <option value="cold-chain">Cold Chain (8–15°C)</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label data-explain="shelfBinLabel"><i class="fas fa-layer-group"></i> Shelf/Bin</label>
+          <input type="text" id="shelfBin" placeholder="e.g., A-12" data-explain="shelfBin">
+        </div>
+        <div class="form-group">
+          <label data-explain="minStockDisplayLabel"><i class="fas fa-arrow-down"></i> Min Stock (Display) *</label>
+          <input type="number" id="minStockDisplay" min="0" value="10" required data-explain="minStockDisplay">
+        </div>
+        <div class="form-group">
+          <label data-explain="maxStockDisplayLabel"><i class="fas fa-arrow-up"></i> Max Stock (Display) *</label>
+          <input type="number" id="maxStockDisplay" min="0" value="100" required data-explain="maxStockDisplay">
+        </div>
+        <div class="form-group">
+          <label data-explain="reorderLevelDisplayLabel"><i class="fas fa-redo-alt"></i> Reorder Level (Display) *</label>
+          <input type="number" id="reorderLevelDisplay" min="0" value="20" required data-explain="reorderLevelDisplay">
+        </div>
+      </div>
+      <div class="btn-group">
+        <button type="submit" class="btn btn-primary" id="saveBtn" data-explain="saveItemBtn"><i class="fas fa-save"></i> Save Item</button>
+        <button type="button" class="btn btn-secondary" id="clearForm" data-explain="clearFormBtn"><i class="fas fa-times"></i> Clear</button>
+      </div>
+    </form>
+  </div>
+  <div class="form-container">
+    <h3 style="color:var(--accent);"><i class="fas fa-history"></i> Recent Registrations</h3>
+    <div class="table-container">
+      <table id="recentRegistrationsTable">
+        <thead>
+          <tr><th>Date</th><th>Item</th><th>Base Unit</th><th>Register Unit</th><th>Display Unit</th><th>Qty (Base)</th><th>Qty (Reg)</th><th>Qty (Display)</th><th>Batch</th><th>Expiry</th></tr>
+        </thead>
+        <tbody id="recentRegistrationsBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- SALES PAGE -->
+<div class="full-screen-mode" id="salesPage" data-explain="salesPage">
+  <div class="full-screen-header">
+    <h2 data-explain="salesHeader"><i class="fas fa-shopping-cart"></i> Sales Transaction (<span id="salesBranchLabel">Pharmacy</span>)</h2>
+    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+      <div class="time-filter-group">
+        <button class="time-filter-btn sales-time-filter" data-period="daily" data-explain="salesTimeFilter">Daily</button>
+        <button class="time-filter-btn sales-time-filter" data-period="weekly" data-explain="salesTimeFilter">Weekly</button>
+        <button class="time-filter-btn sales-time-filter" data-period="monthly" data-explain="salesTimeFilter">Monthly</button>
+        <button class="time-filter-btn sales-time-filter" data-period="quarterly" data-explain="salesTimeFilter">Quarterly</button>
+        <button class="time-filter-btn sales-time-filter" data-period="semiannual" data-explain="salesTimeFilter">Semi-Annual</button>
+        <button class="time-filter-btn sales-time-filter" data-period="yearly" data-explain="salesTimeFilter">Yearly</button>
+        <div class="custom-date-range">
+          <input type="date" id="salesStartDate" placeholder="Start" data-explain="salesStartDate">
+          <input type="date" id="salesEndDate" placeholder="End" data-explain="salesEndDate">
+        </div>
+      </div>
+      <button class="close-full-screen" data-close="salesPage" data-explain="closeSalesPage"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+  <div class="form-container">
+    <form id="salesForm">
+      <div class="form-grid">
+        <div class="form-group"><label data-explain="salesDateLabel"><i class="fas fa-calendar"></i> Date *</label><input type="date" id="salesDate" required data-explain="salesDate"></div>
+        <div class="form-group"><label data-explain="salesBranchLabel2"><i class="fas fa-store"></i> Branch *</label><select id="salesBranch" required data-explain="salesBranch"><option value="pharmacy">Eras‑Birhan Pharmacy</option><option value="wholesaler">Eras‑Birhan Wholesaler</option></select></div>
+        <div class="form-group"><label data-explain="salesWarehouseLabel"><i class="fas fa-warehouse"></i> Warehouse</label><select id="salesWarehouse" data-explain="salesWarehouse"><option value="main">Main Warehouse</option><option value="branch">Branch Warehouse</option><option value="cold">Cold Storage</option></select></div>
+        <div class="form-group"><label data-explain="salesStorageConditionLabel"><i class="fas fa-thermometer-half"></i> Storage Conditions</label><select id="salesStorageCondition" data-explain="salesStorageCondition"><option value="ambient">Room Temperature</option><option value="refrigerated">Refrigerated (2-8°C)</option><option value="frozen">Frozen (-20°C)</option><option value="cold-chain">Cold Chain (8–15°C)</option><option value="other">Other</option></select></div>
+        <div class="form-group"><label data-explain="salesShelfBinLabel"><i class="fas fa-layer-group"></i> Shelf/Bin</label><input type="text" id="salesShelfBin" placeholder="e.g., A-12" data-explain="salesShelfBin"></div>
+        <div class="form-group"><label data-explain="salesPaymentMethodLabel"><i class="fas fa-credit-card"></i> Payment Method *</label><select id="salesPaymentMethod" required data-explain="salesPaymentMethod"><option value="cash">Cash</option><option value="card">Card</option><option value="mobile">Mobile Money</option><option value="credit">Credit</option><option value="insurance">Insurance</option></select></div>
+        <div class="form-group"><label data-explain="customerNameLabel"><i class="fas fa-user"></i> Customer Name</label><input type="text" id="customerName" placeholder="Optional" list="customerNameList" autocomplete="off" data-explain="customerName"><datalist id="customerNameList"></datalist></div>
+        <div class="form-group"><label data-explain="customerTypeLabel"><i class="fas fa-building"></i> Customer Type</label><select id="customerType" data-explain="customerType"><option value="">Select...</option><option value="pharmacy">Pharmacy</option><option value="hospital">Hospital</option><option value="clinic">Clinic</option><option value="individual">Individual</option><option value="wholesale">Wholesale</option></select></div>
+        <div class="form-group"><label data-explain="salespersonLabel"><i class="fas fa-user-md"></i> Salesperson *</label><input type="text" id="salesperson" required list="salespersonList" autocomplete="off" data-explain="salesperson"><datalist id="salespersonList"></datalist></div>
+        <div class="form-group"><label data-explain="salesInvoiceNumberLabel"><i class="fas fa-file-invoice"></i> Invoice Number</label><input type="text" id="salesInvoiceNumber" placeholder="Auto or manual entry" data-explain="salesInvoiceNumber"></div>
+      </div>
+      <h3 style="color:var(--accent); margin:1rem 0;"><i class="fas fa-list"></i> Sales Items <button type="button" id="addSalesRow" class="btn btn-primary" style="float:right; padding:0.3rem 1rem;" data-explain="addSalesRowBtn"><i class="fas fa-plus"></i> Add Item</button></h3>
+      <div class="sales-table-wrapper">
+        <table class="sales-table" id="salesItemsTable">
+          <thead>
+            <tr><th>Item</th><th>Category</th><th>Type</th><th>Batch</th><th>Expiry</th><th>Quantity</th><th>Price/Unit</th><th>Total</th><th>Markup</th><th>Discount</th><th>VAT</th><th>Action</th></tr>
+          </thead>
+          <tbody id="salesItemsBody"></tbody>
+        </table>
+      </div>
+      <div class="form-grid" style="margin-top:1rem;">
+        <div class="form-group"><label>Subtotal:</label><div class="value-display" id="salesSubtotal">ETB 0.00</div></div>
+        <div class="form-group"><label>Total Discount:</label><div class="value-display" id="salesTotalDiscount">ETB 0.00</div></div>
+        <div class="form-group"><label>VAT:</label><div class="value-display" id="salesTotalVAT">ETB 0.00</div></div>
+        <div class="form-group"><label>Grand Total:</label><div class="value-display" id="salesGrandTotal">ETB 0.00</div></div>
+        <div class="form-group"><label>COGS:</label><div class="value-display" id="salesCOGS">ETB 0.00</div></div>
+        <div class="form-group"><label>Profit:</label><div class="value-display" id="salesGrossProfit">ETB 0.00</div></div>
+        <div class="form-group"><label>Margin:</label><div class="value-display" id="salesProfitMargin">0%</div></div>
+      </div>
+      <div class="btn-group">
+        <button type="submit" class="btn btn-primary" data-explain="saveSaleBtn"><i class="fas fa-check"></i> Save Sale</button>
+        <button type="button" class="btn btn-secondary" id="clearSalesForm" data-explain="clearSalesFormBtn"><i class="fas fa-times"></i> Clear</button>
+      </div>
+    </form>
+  </div>
+  <div class="form-container">
+    <h3 style="color:var(--accent); margin-bottom:1rem;"><i class="fas fa-history"></i> Detailed Sales History</h3>
+    <div class="search-filter">
+      <div class="search-box" data-explain="salesHistorySearch"><i class="fas fa-search"></i><input type="text" id="salesHistorySearch" placeholder="Search sales..."></div>
+      <select id="salesHistoryFilter" class="filter-select" data-explain="salesHistoryFilter">
+        <option value="all">All</option><option value="today">Today</option><option value="week">This Week</option><option value="month">This Month</option>
+      </select>
+      <button class="btn btn-secondary" id="exportSalesHistoryBtn" data-explain="exportSalesHistoryBtn"><i class="fas fa-file-excel"></i> Export CSV</button>
+      <button class="btn btn-secondary" id="printSalesHistoryBtn" data-explain="printSalesHistoryBtn"><i class="fas fa-print"></i> Print</button>
+    </div>
+    <div class="table-container" style="max-height:400px;">
+      <table id="salesHistoryTable" style="min-width:1600px;">
+        <thead>
+          <tr><th>Date</th><th>Invoice</th><th>Item</th><th>Category</th><th>Type</th><th>Qty</th><th>Unit</th><th>Price</th><th>Total</th><th>Markup</th><th>Discount</th><th>VAT</th><th>Grand Total</th><th>Profit</th><th>Margin</th><th>Customer</th><th>Payment</th><th>Salesperson</th></tr>
+        </thead>
+        <tbody id="salesHistoryBody"></tbody>
+        <tfoot id="salesHistoryFooter" class="total-row"></tfoot>
+      </table>
+    </div>
+    <div class="history-pagination" id="salesHistoryPagination"></div>
+  </div>
+</div>
+
+<!-- INVENTORY PAGE -->
+<div class="full-screen-mode" id="stockInventoryPage" data-explain="stockInventoryPage">
+  <div class="full-screen-header">
+    <h2 data-explain="inventoryHeader"><i class="fas fa-list-alt"></i> Inventory (<span id="inventoryBranchLabel">Pharmacy</span>)</h2>
+    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+      <div class="time-filter-group">
+        <button class="time-filter-btn inventory-time-filter" data-period="daily" data-explain="inventoryTimeFilter">Daily</button>
+        <button class="time-filter-btn inventory-time-filter" data-period="weekly" data-explain="inventoryTimeFilter">Weekly</button>
+        <button class="time-filter-btn inventory-time-filter" data-period="monthly" data-explain="inventoryTimeFilter">Monthly</button>
+        <button class="time-filter-btn inventory-time-filter" data-period="quarterly" data-explain="inventoryTimeFilter">Quarterly</button>
+        <button class="time-filter-btn inventory-time-filter" data-period="semiannual" data-explain="inventoryTimeFilter">Semi-Annual</button>
+        <button class="time-filter-btn inventory-time-filter" data-period="yearly" data-explain="inventoryTimeFilter">Yearly</button>
+        <div class="custom-date-range">
+          <input type="date" id="inventoryStartDate" placeholder="Start" data-explain="inventoryStartDate">
+          <input type="date" id="inventoryEndDate" placeholder="End" data-explain="inventoryEndDate">
+        </div>
+      </div>
+      <button class="close-full-screen" data-close="stockInventoryPage" data-explain="closeInventoryPage"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+  <div class="search-filter">
+    <div class="search-box" data-explain="searchInput"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Search items..."></div>
+    <!-- NEW: Sort control for inventory -->
+    <div class="sort-control">
+      <select id="inventorySortSelect" data-explain="inventorySortSelect">
+        <option value="default">Default (Expiry)</option>
+        <option value="name-asc">Name A → Z</option>
+        <option value="name-desc">Name Z → A</option>
+      </select>
+    </div>
+    <div class="filter-select"><select id="categoryFilter" data-explain="categoryFilter"><option value="">All Categories</option></select></div>
+    <div class="filter-select"><select id="branchFilter" data-explain="branchFilter"><option value="">All Branches</option><option value="pharmacy">Pharmacy</option><option value="wholesaler">Wholesaler</option></select></div>
+    <div class="filter-select"><select id="statusFilter" data-explain="statusFilter"><option value="">All Status</option><option value="low">Low Stock</option><option value="over">Overstock</option><option value="expiry">Near Expiry</option><option value="expired">Expired</option><option value="stockout">Stock Out</option><option value="reorder">Reorder Level</option><option value="fast">Fast Moving</option><option value="slow">Slow Moving</option></select></div>
+    <button class="btn btn-secondary" id="clearFilters" data-explain="clearFiltersBtn"><i class="fas fa-filter-circle-xmark"></i> Clear</button>
+    <button class="btn btn-primary admin-only" id="balanceVerificationBtn" data-explain="balanceVerificationBtn"><i class="fas fa-check-double"></i> Verify Balances</button>
+  </div>
+  <div class="table-container">
+    <table id="stockTable">
+      <thead>
+        <tr><th>Item</th><th>Category</th><th>Type</th><th>Base Unit</th><th>Registered Unit</th><th>Display Unit</th><th>Qty (Base)</th><th>Qty (Reg)</th><th>Qty (Display)</th><th>Beg Balance</th><th>Received</th><th>Issued/Sold</th><th>End Balance</th><th>Physical Count</th><th>Variance</th><th>Min/Reorder/Max</th><th>Purchase</th><th>Selling</th><th>Margin</th><th>Value</th><th>Batch</th><th>Expiry</th><th>FEFO</th><th>Actions</th></tr>
+      </thead>
+      <tbody id="stockTableBody"></tbody>
+      <tfoot id="inventoryFooter" class="total-row"></tfoot>
+    </table>
+  </div>
+</div>
+
+<!-- DEDUCT STOCK PAGE -->
+<div class="full-screen-mode" id="reduceStockPage" data-explain="reduceStockPage">
+  <div class="full-screen-header">
+    <h2 data-explain="deductHeader"><i class="fas fa-arrow-up"></i> Deduct Stock (<span id="deductBranchLabel">Pharmacy</span>)</h2>
+    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+      <div class="time-filter-group">
+        <button class="time-filter-btn deduct-time-filter" data-period="daily" data-explain="deductTimeFilter">Daily</button>
+        <button class="time-filter-btn deduct-time-filter" data-period="weekly" data-explain="deductTimeFilter">Weekly</button>
+        <button class="time-filter-btn deduct-time-filter" data-period="monthly" data-explain="deductTimeFilter">Monthly</button>
+        <button class="time-filter-btn deduct-time-filter" data-period="quarterly" data-explain="deductTimeFilter">Quarterly</button>
+        <button class="time-filter-btn deduct-time-filter" data-period="semiannual" data-explain="deductTimeFilter">Semi-Annual</button>
+        <button class="time-filter-btn deduct-time-filter" data-period="yearly" data-explain="deductTimeFilter">Yearly</button>
+        <div class="custom-date-range">
+          <input type="date" id="deductStartDate" placeholder="Start" data-explain="deductStartDate">
+          <input type="date" id="deductEndDate" placeholder="End" data-explain="deductEndDate">
+        </div>
+      </div>
+      <button class="close-full-screen" data-close="reduceStockPage" data-explain="closeDeductPage"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+  <div class="form-container">
+    <form id="reduceStockForm">
+      <div class="form-grid">
+        <div class="form-group"><label data-explain="reduceItemSelectLabel"><i class="fas fa-box"></i> Select Item *</label><select id="reduceItemSelect" required data-explain="reduceItemSelect"><option value="">Choose an item...</option></select></div>
+        <div class="form-group"><label data-explain="reduceAvailableLabel">Available</label><input type="text" id="reduceAvailable" readonly data-explain="reduceAvailable"></div>
+        <div class="form-group"><label data-explain="reduceCategoryLabel">Category</label><input type="text" id="reduceCategory" readonly data-explain="reduceCategory"></div>
+        <div class="form-group"><label data-explain="reduceTypeLabel">Type</label><input type="text" id="reduceType" readonly data-explain="reduceType"></div>
+        <div class="form-group"><label data-explain="reduceUnitSelectorLabel"><i class="fas fa-balance-scale"></i> Unit *</label><select id="reduceUnitSelector" required data-explain="reduceUnitSelector"><option value="">Select unit type...</option><option value="baseUnit">Base Unit</option><option value="registeredUnit">Register Unit</option><option value="displayUnit">Display Unit</option></select></div>
+        <div class="form-group" id="reduceBaseUnitGroup" style="display:none;"><label data-explain="reduceBaseUnitLabel">Base Unit</label><input type="text" id="reduceBaseUnit" readonly data-explain="reduceBaseUnit"></div>
+        <div class="form-group" id="reduceRegUnitGroup" style="display:none;"><label data-explain="reduceRegUnitLabel">Registered Unit</label><input type="text" id="reduceRegUnit" readonly data-explain="reduceRegUnit"></div>
+        <div class="form-group" id="reduceDisplayUnitGroup" style="display:none;"><label data-explain="reduceDisplayUnitLabel">Display Unit</label><input type="text" id="reduceDisplayUnit" readonly data-explain="reduceDisplayUnit"></div>
+        <div class="form-group"><label data-explain="reduceBranchLabel"><i class="fas fa-store"></i> Branch *</label><select id="reduceBranch" required data-explain="reduceBranch"><option value="pharmacy">Pharmacy</option><option value="wholesaler">Wholesaler</option></select></div>
+        <div class="form-group"><label data-explain="reduceWarehouseLabel">Warehouse</label><select id="reduceWarehouse" data-explain="reduceWarehouse"><option value="main">Main</option><option value="branch">Branch</option><option value="cold">Cold</option></select></div>
+        <div class="form-group"><label data-explain="reduceStorageConditionLabel">Storage</label><select id="reduceStorageCondition" data-explain="reduceStorageCondition"><option value="ambient">Room Temperature</option><option value="refrigerated">Refrigerated</option><option value="frozen">Frozen</option><option value="cold-chain">Cold Chain (8-15°C)</option><option value="other">Other</option></select></div>
+        <div class="form-group"><label data-explain="reduceShelfBinLabel">Shelf/Bin</label><input type="text" id="reduceShelfBin" readonly data-explain="reduceShelfBin"></div>
+        <div class="form-group"><label data-explain="reduceBatchNumberLabel">Batch</label><input type="text" id="reduceBatchNumber" readonly data-explain="reduceBatchNumber"></div>
+        <div class="form-group"><label data-explain="reduceExpiryDateLabel">Expiry</label><input type="text" id="reduceExpiryDate" readonly data-explain="reduceExpiryDate"></div>
+        <div class="form-group"><label data-explain="reduceInvoiceNumberLabel">Invoice</label><input type="text" id="reduceInvoiceNumber" readonly data-explain="reduceInvoiceNumber"></div>
+        <div class="form-group"><label data-explain="reduceQtyDisplayLabel"><i class="fas fa-calculator"></i> Quantity *</label><input type="number" id="reduceQtyDisplay" min="0" step="0.01" value="0" placeholder="Enter quantity" data-explain="reduceQtyDisplay"></div>
+        <input type="hidden" id="reduceQtyBase" value="0">
+        <input type="hidden" id="reduceQtyRegister" value="0">
+        <div class="form-group"><label data-explain="reduceReasonLabel">Reason *</label><select id="reduceReason" required data-explain="reduceReason"><option value="sale">Sale</option><option value="damaged">Damaged</option><option value="expired">Expired</option><option value="internal">Internal Use</option><option value="donation">Donation</option><option value="return">Return</option><option value="transfer_out">Transfer Out</option><option value="theft">Theft</option><option value="other">Other</option></select></div>
+        <div class="form-group"><label data-explain="whomLabel">Responsible *</label><input type="text" id="whom" required data-explain="whom"></div>
+        <div class="form-group"><label data-explain="reduceNotesLabel">Notes</label><textarea id="reduceNotes" rows="2" data-explain="reduceNotes"></textarea></div>
+      </div>
+      <div class="btn-group">
+        <button type="submit" class="btn btn-primary" data-explain="deductStockBtn"><i class="fas fa-check"></i> Deduct Stock</button>
+        <button type="button" class="btn btn-secondary" id="clearReduceForm" data-explain="clearReduceFormBtn"><i class="fas fa-times"></i> Clear</button>
+      </div>
+    </form>
+  </div>
+  <div class="form-container">
+    <h3 style="color:var(--accent); margin-bottom:1rem;">Deduction History</h3>
+    <div class="table-container">
+      <table id="deductionHistoryTable">
+        <thead>
+          <tr><th>Date</th><th>Item</th><th>Category</th><th>Type</th><th>Qty</th><th>Unit</th><th>Batch</th><th>Expiry</th><th>Reason</th><th>Branch</th><th>Warehouse</th><th>Storage</th><th>Shelf/Bin</th><th>Responsible</th><th>Value Lost</th></tr>
+        </thead>
+        <tbody id="deductionHistoryBody"></tbody>
+        <tfoot id="deductionFooter" class="total-row"></tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- REVIEW PAGE -->
+<div class="full-screen-mode" id="reviewPage" data-explain="reviewPage">
+  <div class="full-screen-header">
+    <h2 data-explain="reviewHeader"><i class="fas fa-chart-bar"></i> Enterprise Review Dashboard</h2>
+    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+      <div class="time-filter-group">
+        <button class="time-filter-btn review-time-filter" data-period="daily" data-explain="reviewTimeFilter">Daily</button>
+        <button class="time-filter-btn review-time-filter" data-period="weekly" data-explain="reviewTimeFilter">Weekly</button>
+        <button class="time-filter-btn review-time-filter" data-period="monthly" data-explain="reviewTimeFilter">Monthly</button>
+        <button class="time-filter-btn review-time-filter" data-period="quarterly" data-explain="reviewTimeFilter">Quarterly</button>
+        <button class="time-filter-btn review-time-filter" data-period="semiannual" data-explain="reviewTimeFilter">Semi-Annual</button>
+        <button class="time-filter-btn review-time-filter" data-period="yearly" data-explain="reviewTimeFilter">Yearly</button>
+        <div class="custom-date-range">
+          <input type="date" id="reviewStartDate" placeholder="Start" data-explain="reviewStartDate">
+          <input type="date" id="reviewEndDate" placeholder="End" data-explain="reviewEndDate">
+        </div>
+      </div>
+      <button class="close-full-screen" data-close="reviewPage" data-explain="closeReviewPage"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+  <div class="dashboard-grid">
+    <div class="dashboard-card" data-page="stockInventoryPage" data-explain="totalStockItemsCard"><h3>Total Items</h3><div class="value" id="totalStockItems">0</div><div class="sub-value">Active inventory</div></div>
+    <div class="dashboard-card" data-page="salesPage" data-explain="totalSalesCard"><h3>Total Sales</h3><div class="value" id="totalSales">ETB 0</div><div class="sub-value">This period</div></div>
+    <div class="dashboard-card" data-page="stockInventoryPage" data-filter="low" data-explain="lowStockCard"><h3>Low Stock</h3><div class="value" id="lowStockItems">0</div><div class="sub-value">Below threshold</div></div>
+    <div class="dashboard-card" data-page="stockInventoryPage" data-filter="reorder" data-explain="reorderLevelCard"><h3>Reorder Level</h3><div class="value" id="reorderItems">0</div><div class="sub-value">Needs reorder</div></div>
+    <div class="dashboard-card" data-page="stockInventoryPage" data-filter="expiry" data-explain="nearExpiryCard"><h3>Near Expiry</h3><div class="value" id="nearExpiryItems">0</div><div class="sub-value">30-90 days</div></div>
+    <div class="dashboard-card" data-page="stockInventoryPage" data-filter="expired" data-explain="expiredCard"><h3>Expired</h3><div class="value" id="expiredItems">0</div><div class="sub-value">Total loss</div></div>
+    <div class="dashboard-card" data-page="stockInventoryPage" data-explain="inventoryValueCard"><h3>Inventory Value</h3><div class="value" id="totalInventoryValue">ETB 0</div><div class="sub-value">Current stock</div></div>
+    <div class="dashboard-card" data-page="stockInventoryPage" data-filter="fast" data-explain="fastMovingCard"><h3>Fast Moving</h3><div class="value" id="fastMovingItems">0</div><div class="sub-value">High demand</div></div>
+    <div class="dashboard-card" data-page="stockInventoryPage" data-filter="slow" data-explain="slowMovingCard"><h3>Slow Moving</h3><div class="value" id="slowMovingItems">0</div><div class="sub-value">Low demand</div></div>
+    <div class="dashboard-card" data-explain="netProfitCard"><h3>Net Profit</h3><div class="value" id="netProfit">ETB 0</div><div class="sub-value">Revenue - COGS - Loss</div></div>
+    <div class="dashboard-card" data-explain="grossProfitCard"><h3>Gross Profit</h3><div class="value" id="grossProfit">ETB 0</div><div class="sub-value">Revenue - COGS</div></div>
+    <div class="dashboard-card" data-explain="turnoverCard"><h3>Turnover Ratio</h3><div class="value" id="inventoryTurnover">0</div><div class="sub-value">This period</div></div>
+    <div class="dashboard-card" data-explain="stockAccuracyCard"><h3>Stock Accuracy</h3><div class="value" id="stockAccuracy">100%</div><div class="sub-value">Variance free</div></div>
+  </div>
+
+  <!-- Ending Balance placed beside Stock Accuracy -->
+  <div class="accuracy-balance-row">
+    <div class="dashboard-card" data-explain="stockAccuracyCard">
+      <h3>Stock Accuracy</h3>
+      <div class="value" id="stockAccuracyDuplicate">100%</div>
+      <div class="sub-value">Variance free</div>
+    </div>
+    <div class="ending-balance-wrapper">
+      <button id="endingBalanceBtn" class="ending-balance-btn" data-explain="endingBalanceBtn"><i class="fas fa-calculator"></i> Ending Balance</button>
+    </div>
+  </div>
+  <div id="endingBalancePanel" class="form-container" style="display:none; margin-top:0.5rem;">
+      <h3 style="color:var(--success);"><i class="fas fa-chart-line"></i> Ending Balance Summary</h3>
+      <div id="endingBalanceContent" class="value-display" style="text-align:left; font-size:0.95rem; line-height:1.8;">
+          <!-- dynamically filled -->
+      </div>
+  </div>
+
+<div class="form-container"><h3 style="color:var(--accent); display:flex; align-items:center; justify-content:space-between;">Demand Forecast (Next 30 Days) <button class="toggle-detail-btn" onclick="if(window.ultraStock) window.ultraStock.toggleDetail('demandForecastDetail')" data-explain="demandForecastToggle"><i class="fas fa-chart-line"></i> View Details</button></h3><div class="value-display" id="demandForecast" data-explain="demandForecastValue">Calculating...</div><div id="demandForecastDetail" class="detail-table-container hidden-detail"><h4 style="color:var(--success);">Detailed Forecast by Item</h4><div class="table-container"><table class="detail-table" id="demandForecastTable"><thead><tr><th>Item</th><th>Daily Avg Sales</th><th>30-Day Forecast</th><th>Current Stock</th><th>Coverage Days</th><th>Recommended Order</th></tr></thead><tbody id="demandForecastTableBody"></tbody></table></div></div></div>
+<div class="form-container"><h3 style="color:var(--accent); display:flex; align-items:center; justify-content:space-between;">Reorder Recommendations <button class="toggle-detail-btn" onclick="if(window.ultraStock) window.ultraStock.toggleDetail('reorderDetail')" data-explain="reorderRecommendationsToggle"><i class="fas fa-shopping-cart"></i> View Details</button></h3><div class="value-display" id="reorderRecommendations" data-explain="reorderRecommendationsValue">No items need reorder</div><div id="reorderDetail" class="detail-table-container hidden-detail"><h4 style="color:var(--success);">Items Needing Reorder</h4><div class="table-container"><table class="detail-table" id="reorderDetailTable"><thead><tr><th>Item</th><th>Current Stock</th><th>Reorder Level</th><th>Suggested Qty</th><th>Urgency</th></tr></thead><tbody id="reorderDetailTableBody"></tbody></table></div></div></div>
+<div class="form-container"><h3 style="color:var(--accent); display:flex; align-items:center; justify-content:space-between;"><span><i class="fas fa-chart-line"></i> Total Loss by Reason</span><button class="total-loss-btn" id="totalLossDetailBtn" data-explain="totalLossDetailBtn"><i class="fas fa-exclamation-triangle"></i> Total Loss Report</button></h3><table class="loss-reasons-table" id="lossReasonsTable"><thead><tr><th>Loss Reason</th><th>Quantity Lost</th><th>Value Lost (ETB)</th><th>% of Total Loss</th></tr></thead><tbody id="lossReasonsBody"></tbody></table></div>
+<div class="form-container"><h3 style="color:var(--accent);">Cost vs Selling Price Comparison (per Display Unit)</h3><div class="table-container"><table id="costSellingTable"><thead><tr><th>Item</th><th>Purchase Price</th><th>Selling Price</th><th>Markup %</th><th>Profit per Unit</th><th>Margin %</th></tr></thead><tbody id="costSellingBody"></tbody></table></div></div>
+<div class="form-container"><h3 style="color:var(--accent);">Negative Variance Tracking (Expected vs Actual)</h3><div class="table-container"><table id="varianceTrackingTable"><thead><tr><th>Item</th><th>Expected Qty</th><th>Physical Qty</th><th>Variance</th><th>Variance Value</th><th>Status</th></tr></thead><tbody id="varianceTrackingBody"></tbody></table></div></div>
+<div class="charts-container"><div class="chart-card"><h3>Stock Movement</h3><canvas id="stockMovementChart"></canvas></div><div class="chart-card"><h3>Sales Trend</h3><canvas id="salesTrendChart"></canvas></div><div class="chart-card"><h3>Profit Analysis</h3><canvas id="profitChart"></canvas></div><div class="chart-card"><h3>Fast vs Slow Moving</h3><canvas id="movementChart"></canvas></div></div>
+<div class="form-container"><h3 style="color:var(--accent);">Top Selling Items</h3><div class="table-container"><table id="topItemsTable"><thead><tr><th>Item</th><th>Category</th><th>Type</th><th>Qty Sold</th><th>Revenue</th><th>Profit</th><th>Margin</th></tr></thead><tbody id="topItemsBody"></tbody></table></div></div>
+<div class="form-container"><h3 style="color:var(--accent);">Expiry & Wastage Report</h3><div class="table-container"><table id="expiryWastageTable"><thead><tr><th>Item</th><th>Batch</th><th>Expiry</th><th>Days Left</th><th>Current Qty</th><th>Potential Loss</th><th>Status</th></tr></thead><tbody id="expiryWastageBody"></tbody><tfoot id="expiryFooter" class="total-row"></tfoot></table></div></div>
+<div class="form-container"><h3 style="color:var(--accent);"><i class="fas fa-clipboard-list"></i> System Activity & User Actions</h3><div class="search-filter"><div class="search-box" data-explain="activitySearch"><i class="fas fa-search"></i><input type="text" id="activitySearch" placeholder="Filter activities..."></div><select id="activityTypeFilter" data-explain="activityTypeFilter"><option value="">All Types</option><option value="purchase">Purchases</option><option value="sale">Sales</option><option value="damaged">Damages</option><option value="expired">Expired</option><option value="login">Logins</option><option value="edit">Edits</option><option value="settings">Settings</option></select><button class="btn btn-secondary" id="exportActivityBtn" data-explain="exportActivityBtn"><i class="fas fa-download"></i> Export CSV</button></div><div class="table-container review-activity-log"><table id="activityLogTable" style="min-width:800px;"><thead><tr><th>Timestamp</th><th>Action</th><th>User</th><th>Item</th><th>Details</th><th>Branch</th></tr></thead><tbody id="activityLogBody"></tbody></table></div></div>
+<div class="form-container"><h3 style="color:var(--accent);"><i class="fas fa-sync-alt"></i> Synchronization Status</h3><div><span class="sync-status" id="syncStatusDot"></span> <span id="syncStatusText">Online</span> | Last Sync: <span id="lastSyncTime">Never</span> | Pending Operations: <span id="pendingOps">0</span></div></div></div>
+
+<!-- AUDIT PAGE -->
+<div class="full-screen-mode" id="auditPage" data-explain="auditPage">
+  <div class="full-screen-header">
+    <h2 data-explain="auditHeader"><i class="fas fa-shield-alt"></i> Audit Summary</h2>
+    <div style="display:flex; gap:0.5rem;">
+      <div class="time-filter-group">
+        <button class="time-filter-btn audit-time-filter" data-period="daily" data-explain="auditTimeFilter">Daily</button>
+        <button class="time-filter-btn audit-time-filter" data-period="weekly" data-explain="auditTimeFilter">Weekly</button>
+        <button class="time-filter-btn audit-time-filter" data-period="monthly" data-explain="auditTimeFilter">Monthly</button>
+        <button class="time-filter-btn audit-time-filter" data-period="quarterly" data-explain="auditTimeFilter">Quarterly</button>
+        <button class="time-filter-btn audit-time-filter" data-period="semiannual" data-explain="auditTimeFilter">Semi-Annual</button>
+        <button class="time-filter-btn audit-time-filter" data-period="yearly" data-explain="auditTimeFilter">Yearly</button>
+        <div class="custom-date-range">
+          <input type="date" id="auditStartDate" placeholder="Start" data-explain="auditStartDate">
+          <input type="date" id="auditEndDate" placeholder="End" data-explain="auditEndDate">
+        </div>
+      </div>
+      <button class="close-full-screen" data-close="auditPage" data-explain="closeAuditPage"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+  <div class="form-container">
+    <div class="audit-summary-grid">
+      <div class="audit-summary-item" data-audit-type="beginning" data-explain="auditBeginningBalanceItem"><h4>Beginning Balance</h4><div class="audit-summary-value" id="auditBeginningBalance">ETB 0</div></div>
+      <div class="audit-summary-item" data-audit-type="onhand" data-explain="auditStockOnHandItem"><h4>Stock on Hand</h4><div class="audit-summary-value" id="auditStockOnHandValue">ETB 0</div></div>
+      <div class="audit-summary-item" data-audit-type="ending" data-explain="auditEndingBalanceItem"><h4>Ending Balance</h4><div class="audit-summary-value" id="auditEndingBalance">ETB 0</div></div>
+      <div class="audit-summary-item" data-audit-type="posvar" data-explain="auditPosVarItemsItem"><h4>Positive Variance (Items)</h4><div class="audit-summary-value" id="auditPosVarItems">0</div></div>
+      <div class="audit-summary-item" data-audit-type="negvar" data-explain="auditNegVarItemsItem"><h4>Negative Variance (Items)</h4><div class="audit-summary-value" id="auditNegVarItems">0</div></div>
+      <div class="audit-summary-item" data-audit-type="poscost" data-explain="auditPosVarCostItem"><h4>Positive Variance (Cost)</h4><div class="audit-summary-value" id="auditPosVarCost">ETB 0</div></div>
+      <div class="audit-summary-item" data-audit-type="negcost" data-explain="auditNegVarCostItem"><h4>Negative Variance (Cost)</h4><div class="audit-summary-value" id="auditNegVarCost">ETB 0</div></div>
+      <div class="audit-summary-item" data-audit-type="netvar" data-explain="auditNetVarianceItem"><h4>Net Variance</h4><div class="audit-summary-value" id="auditNetVariance">ETB 0</div></div>
+      <div class="audit-summary-item" data-audit-type="loss" data-explain="auditTotalLossItem"><h4>Total Loss</h4><div class="audit-summary-value" id="auditTotalLoss">ETB 0</div></div>
+      <div class="audit-summary-item" data-audit-type="gain" data-explain="auditTotalGainItem"><h4>Total Gain</h4><div class="audit-summary-value" id="auditTotalGain">ETB 0</div></div>
+      <div class="audit-summary-item" data-audit-type="netprofit" data-explain="auditNetProfitItem"><h4>Net Profit</h4><div class="audit-summary-value" id="auditNetProfit">ETB 0</div></div>
+      <div class="audit-summary-item" data-audit-type="grosspl" data-explain="auditGrossPLItem"><h4>Gross P&L</h4><div class="audit-summary-value" id="auditGrossPL">ETB 0</div></div>
+      <div class="audit-summary-item" data-audit-type="recommend" data-explain="auditRecommendationItem"><h4>Recommendation</h4><div class="audit-summary-value" id="auditRecommendation">-</div></div>
+      <div class="audit-summary-item" data-audit-type="status" data-explain="auditStatusItem"><h4>Audit Status</h4><div class="audit-summary-value" id="auditStatus">-</div></div>
+      <div class="audit-summary-item" data-audit-type="accuracy" data-explain="auditAccuracyItem"><h4>Accuracy %</h4><div class="audit-summary-value" id="auditAccuracy">100%</div></div>
+      <div class="audit-summary-item" data-audit-type="itemdiff" data-explain="auditItemDiffItem"><h4>Item Diff</h4><div class="audit-summary-value" id="auditItemDiff">0</div></div>
+      <div class="audit-summary-item" data-audit-type="impact" data-explain="auditFinancialImpactItem"><h4>Financial Impact</h4><div class="audit-summary-value" id="auditFinancialImpact">ETB 0</div></div>
+    </div>
+    <div id="auditSummaryDetail" class="detail-table-container hidden-detail">
+      <h4 style="color:var(--success);">Detailed Variance by Item</h4>
+      <div class="table-container">
+        <table class="detail-table" id="auditVarianceDetailTable">
+          <thead><tr><th>Item</th><th>Expected</th><th>Physical</th><th>Variance</th><th>Variance Value</th><th>Status</th></tr></thead>
+          <tbody id="auditVarianceDetailBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="form-grid" style="margin-top:1rem;">
+      <div class="form-group"><label data-explain="auditReasonFieldLabel">Reason</label><input type="text" id="auditReasonField" placeholder="Enter variance reason" data-explain="auditReasonField"></div>
+      <div class="form-group"><label data-explain="auditResponsibleFieldLabel">Responsible</label><input type="text" id="auditResponsibleField" placeholder="Responsible person/department" data-explain="auditResponsibleField"></div>
+      <div class="form-group"><label data-explain="auditResolutionFieldLabel">Resolution</label><select id="auditResolutionField" data-explain="auditResolutionField"><option value="Pending">Pending</option><option value="Adjusted">Adjusted</option><option value="Written Off">Written Off</option><option value="Investigation">Investigation</option></select></div>
+      <div class="form-group"><label data-explain="auditCommentFieldLabel">Comment</label><input type="text" id="auditCommentField" placeholder="Auditor notes" data-explain="auditCommentField"></div>
+      <div class="form-group"><label data-explain="auditApprovalFieldLabel">Approval</label><select id="auditApprovalField" data-explain="auditApprovalField"><option value="Draft">Draft</option><option value="Approved">Approved</option><option value="Reviewed">Reviewed</option></select></div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-primary" id="updateAuditFindings" data-explain="updateAuditFindingsBtn">Update Audit Findings</button>
+      <button class="btn btn-secondary" id="exportAuditReport" data-explain="exportAuditReportBtn">Export Audit Report</button>
+      <button class="btn btn-secondary" id="toggleAuditDetailBtn" onclick="if(window.ultraStock) window.ultraStock.toggleDetail('auditSummaryDetail')" data-explain="toggleAuditDetailBtn">View Variance Details</button>
+    </div>
+    <div class="search-filter" style="margin:1rem 0;">
+      <div class="search-box" data-explain="searchAudit"><i class="fas fa-search"></i><input type="text" id="searchAudit" placeholder="Search audit..."></div>
+      <select id="auditTypeFilter" data-explain="auditTypeFilter"><option value="">All Types</option><option value="purchase">Purchase</option><option value="sale">Sale</option><option value="damaged">Damaged</option><option value="expired">Expired</option><option value="verification">Verification</option></select>
+      <select id="auditDateFilter" data-explain="auditDateFilter"><option value="all">All Time</option><option value="today">Today</option><option value="week">This Week</option><option value="month">This Month</option></select>
+    </div>
+    <div class="table-container">
+      <table id="auditTable">
+        <thead>
+          <tr><th>Date</th><th>Type</th><th>Item</th><th>Category</th><th>Type</th><th>Base Unit</th><th>Reg Unit</th><th>Display Unit</th><th>User</th><th>Qty</th><th>Value</th><th>Batch</th><th>Expiry</th><th>Invoice</th><th>Branch</th><th>Details</th></tr>
+        </thead>
+        <tbody id="auditTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal-fullscreen" id="fullscreenModal">
+  <div class="modal-content">
+    <span class="modal-exit" id="modalExitBtn" data-explain="modalExitBtn">&times;</span>
+    <div id="modalMessage"></div>
+    <button class="btn btn-primary" id="modalConfirmBtn" style="margin-top:20px;" data-explain="modalConfirmBtn">OK</button>
+  </div>
+</div>
+<div class="modal-fullscreen" id="totalLossModal">
+  <div class="modal-content loss-modal-content">
+    <span class="modal-exit" id="totalLossModalExit" data-explain="totalLossModalExit">&times;</span>
+    <h3 style="color:var(--accent); margin-bottom:15px;"><i class="fas fa-chart-line"></i> Detailed Loss Report</h3>
+    <div id="lossReportContent">
+      <h4>Loss Summary by Reason</h4>
+      <table id="lossReportTable" style="width:100%; margin-bottom:15px;">
+        <thead><tr><th>Reason</th><th>Quantity</th><th>Value (ETB)</th><th>% of Total</th></tr></thead>
+        <tbody id="lossReportBody"></tbody>
+      </table>
+      <h4>Loss Details by Item</h4>
+      <div class="table-container" style="max-height:300px;">
+        <table id="lossDetailTable">
+          <thead><tr><th>Item</th><th>Batch</th><th>Reason</th><th>Quantity</th><th>Value Lost</th><th>Date</th></tr></thead>
+          <tbody id="lossDetailBody"></tbody>
+        </table>
+      </div>
+      <div class="btn-group" style="margin-top:15px;">
+        <button class="btn btn-primary" id="exportLossReportBtn" data-explain="exportLossReportBtn">Export Report</button>
+        <button class="btn btn-secondary" id="closeLossModalBtn" data-explain="closeLossModalBtn">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="/src/main.ts"></script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/sw.js").catch(err => console.log("SW registration error:", err));
+    });
+  }
+</script>
+</body>
+</html>

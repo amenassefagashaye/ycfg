@@ -1,0 +1,8 @@
+{
+  "name": "Eras-Birhan Pharmaceuticals Stock Management System (EBP-SMS)",
+  "description": "Enterprise offline pharmaceutical stock management, sales tracking, inventory control, and cryptographic security system.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

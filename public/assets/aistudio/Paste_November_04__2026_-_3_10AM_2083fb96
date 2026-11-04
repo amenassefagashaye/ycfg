@@ -1,0 +1,808 @@
+# MASTER PROMPT: MAXIMUM PRACTICAL OFFLINE SOFTWARE SECURITY ENHANCEMENT
+
+## Existing Application Protection, Data Security, Anti-Tampering, Authentication, Device Authorization, and Recovery
+
+### PROJECT OBJECTIVE
+
+Upgrade my existing application to achieve the maximum practical level of security technically achievable within its existing offline architecture.
+
+Protect the application against:
+
+1. Source-code theft and unauthorized copying.
+2. Unauthorized application access.
+3. Hacking and unauthorized modification.
+4. Reverse engineering.
+5. Unauthorized application duplication and redistribution.
+6. Local database theft.
+7. Unauthorized IndexedDB and LocalStorage access.
+8. Unauthorized administrator access.
+9. Data manipulation, corruption, and deletion.
+10. Unauthorized data exports.
+11. Application tampering.
+12. Unauthorized device usage.
+13. Malicious scripts and code injection.
+14. Unauthorized backup restoration.
+15. Unauthorized application updates.
+16. Session hijacking and unauthorized session reuse.
+17. Password attacks and brute-force attempts.
+18. Unauthorized permission escalation.
+19. Malicious backup modification.
+20. Unauthorized access to sensitive application information.
+
+The primary objective is to make the existing application as secure as practically possible without sacrificing its existing functionality or offline capabilities.
+
+---
+
+# PART 1: STRICT APPLICATION PRESERVATION
+
+Before making any modifications, inspect the complete existing application.
+
+Preserve the existing:
+
+- HTML structure.
+- CSS and visual design.
+- JavaScript architecture.
+- PWA functionality.
+- Service Worker.
+- Web App Manifest.
+- IndexedDB databases.
+- LocalStorage data.
+- Authentication system.
+- Administrator accounts.
+- Ordinary user accounts.
+- Existing roles and permissions.
+- Existing application settings.
+- Existing database schemas and records.
+- Backup and restoration mechanisms.
+- Existing calculations and reports.
+- Existing buttons and navigation.
+- Existing desktop and mobile interfaces.
+- Existing offline operations.
+- Existing integrations and workflows.
+
+### Mandatory preservation rules
+
+1. Do not rebuild the application.
+2. Do not replace the existing architecture.
+3. Do not redesign the interface.
+4. Do not remove existing features.
+5. Do not change unrelated functionality.
+6. Do not reset, clear, or overwrite existing databases.
+7. Do not replace existing user accounts.
+8. Do not introduce unnecessary frameworks.
+9. Do not introduce unnecessary paid services.
+10. Do not require internet connectivity for ordinary authorized offline operations.
+11. Modify only the files necessary for the requested security improvements.
+12. Preserve all existing functionality and application behavior.
+
+**ABSOLUTE RULE: KEEP EVERYTHING ELSE 100% AS IT IS.**
+
+If an existing feature conflicts with a proposed security implementation, explain the conflict and provide a safe migration strategy before changing that feature.
+
+---
+
+# PART 2: SOURCE CODE PROTECTION
+
+Implement practical source-code protection mechanisms:
+
+1. JavaScript minification.
+2. Selective JavaScript obfuscation.
+3. Production source-map protection.
+4. Application copyright identification.
+5. Developer ownership identification.
+6. Application fingerprinting.
+7. Digital watermarking where appropriate.
+8. Application version identification.
+9. Secure production build procedures.
+10. Secure release management.
+11. Protected development backups.
+12. Unauthorized modification detection.
+13. Consistent application release identification.
+14. Secure separation of development and production builds.
+
+Use obfuscation selectively because excessive obfuscation can break existing application functions.
+
+Never claim that browser-delivered HTML, CSS, or JavaScript can be made impossible to copy or reverse engineer.
+
+Do not place passwords, encryption secrets, private keys, or administrator credentials inside JavaScript source code.
+
+---
+
+# PART 3: OFFLINE AUTHENTICATION SECURITY
+
+Strengthen the existing offline authentication system.
+
+Implement:
+
+1. Secure offline login.
+2. Strong password verification.
+3. Password hashing using an appropriate password-hashing mechanism.
+4. Unique cryptographic salts.
+5. Secure password verification.
+6. Multi-factor verification where technically practical.
+7. Role-based access control.
+8. Administrator-only permissions.
+9. User-specific permissions.
+10. Permission-specific operations.
+11. Automatic session expiration.
+12. Inactivity timeout.
+13. Automatic logout.
+14. Secure logout.
+15. Failed login tracking.
+16. Login rate limiting.
+17. Temporary account lockout.
+18. Session revocation.
+19. Secure password recovery.
+20. Secure password changes.
+21. Device-associated sessions.
+22. Secure session persistence.
+23. Protection against session reuse.
+24. Session expiration after application restart where required by the security policy.
+
+### Password requirements
+
+- Never store plaintext passwords.
+- Never store reversible passwords.
+- Never hardcode passwords in JavaScript.
+- Use a password-hashing algorithm appropriate to the browser environment.
+- Prefer Argon2id when a properly maintained offline implementation is available.
+- If using native Web Crypto only, use PBKDF2-HMAC-SHA-256 with a unique random salt and an appropriately calibrated work factor.
+- Version password-hashing parameters to support future upgrades.
+- Never silently downgrade password security.
+
+Clearly distinguish offline authentication from online identity verification.
+
+Do not claim that offline authentication can independently verify an administrator through an external authority when internet connectivity is unavailable.
+
+---
+
+# PART 4: DEVICE REGISTRATION AND AUTHORIZATION
+
+Implement practical device authorization.
+
+Required features:
+
+1. Authorized device registration.
+2. Device identity records.
+3. Device-specific authorization.
+4. New-device verification.
+5. Administrator-controlled device approval.
+6. Device access revocation.
+7. Session-device association.
+8. Device activity logging.
+9. Configurable device registration limits.
+10. Secure device replacement procedures.
+11. Lost-device recovery.
+12. Authorized backup restoration on replacement devices.
+13. Device registration history.
+14. Device authorization status monitoring.
+
+### Device security requirements
+
+- Do not rely solely on browser fingerprints.
+- Do not treat a browser-generated device ID as proof of trusted hardware.
+- Use cryptographic device credentials where technically practical.
+- Protect device registration and recovery operations.
+- Require appropriate administrator authorization for new-device approval.
+- Maintain a safe replacement procedure.
+- Do not permanently lock out the legitimate administrator after device loss.
+
+Clearly identify which device-verification features work offline and which require online verification.
+
+---
+
+# PART 5: LOCAL DATABASE ENCRYPTION AND PROTECTION
+
+Protect sensitive IndexedDB and LocalStorage records.
+
+Implement:
+
+1. AES-256-GCM encryption for sensitive records.
+2. Web Crypto API integration.
+3. Secure encryption-key generation.
+4. Secure encryption-key management.
+5. Appropriate key derivation.
+6. Non-extractable cryptographic keys where appropriate.
+7. Cryptographic integrity verification.
+8. Record-level data validation.
+9. Secure database transactions.
+10. Unauthorized modification detection.
+11. Sensitive-data masking.
+12. Database access restrictions within the application.
+13. Secure backup encryption.
+14. Secure database migration.
+15. Recovery verification.
+16. Protection against accidental corruption.
+17. Secure deletion procedures where supported.
+18. Encryption-key rotation where practical.
+
+### Critical encryption requirements
+
+- Never store plaintext encryption keys beside encrypted records.
+- Do not hardcode encryption keys in application source code.
+- Do not use a simple fixed password as the encryption key.
+- Use appropriate key derivation and random salts.
+- Authenticate encrypted records using AES-GCM.
+- Use unique nonces for encryption operations.
+- Do not reuse AES-GCM nonces with the same key.
+- Maintain encryption version information.
+- Preserve access to existing records during migration.
+- Verify encrypted records before accepting database restoration.
+
+Use non-extractable CryptoKey objects where appropriate, while recognizing that they do not protect against malicious JavaScript running in the trusted application origin.
+
+Do not claim that encryption protects an unlocked application against someone controlling the device or browser.
+
+---
+
+# PART 6: APPLICATION ANTI-TAMPERING
+
+Implement practical application integrity protection.
+
+Required mechanisms:
+
+1. Application file integrity verification.
+2. Cryptographic file hashes.
+3. Trusted application version identification.
+4. Secure configuration validation.
+5. Critical file integrity checks.
+6. Service Worker integrity management.
+7. Secure application initialization.
+8. Unauthorized modification detection.
+9. Tamper-evident audit records.
+10. Trusted application recovery.
+11. Secure update verification.
+12. Signed application releases where supported.
+13. Release manifest verification.
+14. Application version consistency checks.
+
+### Important requirements
+
+- Do not rely on a hash stored beside a file as the only protection against modification.
+- Do not rely on frontend integrity checks as the sole security boundary.
+- Establish a trustworthy release-verification process.
+- Keep release signing keys outside the distributed application.
+- Verify application updates before activation.
+- Do not silently execute modified application files.
+- Provide safe recovery when an integrity check fails.
+- Never automatically delete user data after detecting tampering.
+
+Where independent signature verification is unavailable offline, clearly document the limitation and provide a trusted manual recovery process.
+
+---
+
+# PART 7: SERVICE WORKER AND CACHE SECURITY
+
+Strengthen the existing PWA and Service Worker.
+
+Implement:
+
+1. Secure Service Worker registration.
+2. Application version control.
+3. Cache version management.
+4. Cache integrity verification.
+5. Secure cache updates.
+6. Old cache cleanup.
+7. Sensitive cache restrictions.
+8. Authentication-related cache restrictions.
+9. Secure offline application loading.
+10. Trusted update procedures.
+11. Cache recovery procedures.
+12. Service Worker update verification.
+13. Safe cache migration.
+14. Protection against outdated application versions.
+
+### Mandatory preservation rules
+
+- Preserve existing offline availability.
+- Never accidentally delete necessary application files.
+- Never delete IndexedDB records during cache cleanup.
+- Never clear LocalStorage unnecessarily.
+- Never destroy application data during Service Worker updates.
+- Ensure that application updates do not interrupt existing transactions.
+- Keep the existing PWA installation functional.
+
+Use versioned caches and safe activation procedures.
+
+---
+
+# PART 8: OFFLINE ACCESS CONTROL AND PERMISSIONS
+
+Implement secure offline authorization for all existing roles.
+
+Required features:
+
+1. Offline user authorization.
+2. Offline administrator authorization.
+3. Permission-specific operations.
+4. Session expiration.
+5. Inactivity timeout.
+6. Secure logout.
+7. Offline data access restrictions.
+8. Secure administrator settings.
+9. Local account activity monitoring.
+10. Unauthorized access detection.
+11. Protected administrator operations.
+12. Secure account switching.
+13. Permission validation before sensitive operations.
+14. Protection against unauthorized privilege escalation.
+
+Do not rely on hidden buttons, CSS visibility, LocalStorage role values, or frontend-only checks as the sole authorization mechanism.
+
+Every sensitive operation must validate the authenticated session and the user's permissions at the operation level.
+
+When internet connectivity returns, synchronize pending security events where applicable without losing locally stored records.
+
+---
+
+# PART 9: DATA THEFT AND EXPORT PROTECTION
+
+Protect sensitive application data.
+
+Implement:
+
+1. Administrator-controlled data exports.
+2. User-specific export permissions.
+3. Secure CSV exports.
+4. Secure Excel exports.
+5. Secure PDF exports.
+6. Export activity logging.
+7. Watermarked reports where appropriate.
+8. Sensitive-data masking.
+9. Secure backup encryption.
+10. Backup integrity verification.
+11. Backup access restrictions.
+12. Secure data restoration.
+13. Export confirmation for sensitive information.
+14. Permission verification before every export.
+15. Appropriate protection against spreadsheet formula injection.
+
+Record:
+
+- Who performed the export.
+- Date and time.
+- Export category.
+- Exported record scope.
+- Export result.
+
+Never silently destroy existing data.
+
+Clearly document that downloaded or previously exported files cannot be reliably recalled or controlled by the application.
+
+---
+
+# PART 10: SECURE OFFLINE BACKUP AND RECOVERY
+
+Maintain and strengthen the existing backup and restoration system.
+
+Implement:
+
+1. Automatic local backup.
+2. Manual backup.
+3. Encrypted backup files.
+4. Backup integrity verification.
+5. Backup version identification.
+6. Backup access authorization.
+7. Secure restoration.
+8. Restore confirmation.
+9. Data recovery procedures.
+10. Backup history.
+11. Protection against unauthorized backup modification.
+12. Recovery testing.
+13. Authorized replacement-device restoration.
+14. Backup compatibility verification.
+15. Database migration compatibility.
+16. Recovery from interrupted restoration.
+17. Pre-restoration safety backup.
+
+### Mandatory backup requirements
+
+- Never overwrite the only existing backup.
+- Never restore unverified backup files.
+- Never silently replace current user records.
+- Verify backup integrity before restoration.
+- Verify backup version and compatibility.
+- Confirm the restoration target.
+- Create a recoverable pre-restoration backup.
+- Preserve existing database records unless an explicitly authorized restoration requires replacement.
+- Provide clear restoration success and failure messages.
+
+Ensure that authorized backups can be restored on a replacement device through a defined recovery process.
+
+---
+
+# PART 11: LOCAL AUDIT AND SECURITY MONITORING
+
+Create or strengthen a local security audit system.
+
+Record:
+
+1. Successful login events.
+2. Failed login events.
+3. Logout events.
+4. Session expiration events.
+5. Device registration events.
+6. Device authorization events.
+7. Device revocation events.
+8. Permission changes.
+9. Administrator activities.
+10. Data modifications.
+11. Data deletion events.
+12. Data exports.
+13. Backup operations.
+14. Restore operations.
+15. Application integrity failures.
+16. Security configuration changes.
+17. Suspicious local activity.
+18. Password changes.
+19. Account lockouts.
+20. Unauthorized operation attempts.
+
+### Audit protection
+
+- Use structured audit records.
+- Include timestamps and event identifiers.
+- Maintain record integrity.
+- Use cryptographic hash chaining where appropriate.
+- Restrict ordinary users from modifying audit records through application functions.
+- Log administrative changes.
+- Avoid logging plaintext passwords, private keys, and unnecessary sensitive information.
+- Preserve pending security events during offline operation.
+- Synchronize records when connectivity becomes available, if an existing synchronization mechanism supports it.
+
+Clearly explain that local audit logs cannot be made absolutely tamper-proof against an attacker with full control of the device.
+
+---
+
+# PART 12: FRONTEND AND SCRIPT SECURITY
+
+Implement:
+
+1. Content Security Policy.
+2. Cross-site scripting protection.
+3. Safe DOM manipulation.
+4. Input validation.
+5. Output encoding.
+6. Secure dependency management.
+7. JavaScript integrity verification.
+8. Secure event handling.
+9. Protection against malicious HTML.
+10. Secure error handling.
+11. Restriction of unnecessary external resources.
+12. Secure application initialization.
+13. Safe file processing.
+14. Secure dynamic content rendering.
+15. Protection against injection through imported data.
+16. Appropriate browser security headers where hosting permits.
+
+### Additional requirements
+
+- Avoid unsafe HTML insertion.
+- Prefer textContent for untrusted text.
+- Validate imported files and records.
+- Avoid executing user-supplied JavaScript.
+- Avoid unnecessary third-party scripts.
+- Maintain secure event listeners.
+- Avoid exposing sensitive internal information through error messages.
+- Do not weaken the existing application to accommodate unnecessary dependencies.
+
+The application must not require external scripts or online CDNs for essential offline functions.
+
+Where a security policy requires changing existing inline scripts or styles, make only the necessary changes and verify the entire affected interface.
+
+---
+
+# PART 13: OFFLINE OPERATION AND DATA PERSISTENCE
+
+The application must remain fully operational offline.
+
+Verify:
+
+1. Application startup without internet.
+2. Offline authentication.
+3. Offline administrator operations.
+4. Offline ordinary-user operations.
+5. Offline database access.
+6. Offline data modification.
+7. Offline backup.
+8. Offline restoration.
+9. Offline reports.
+10. Offline exports.
+11. Offline PWA installation.
+12. Offline Service Worker operation.
+13. Data persistence after closing the browser.
+14. Data persistence after restarting the computer.
+15. Safe application updates.
+16. Recovery from interrupted operations.
+
+Use IndexedDB for structured application data and avoid unnecessary duplication between IndexedDB and LocalStorage.
+
+Request persistent browser storage where supported.
+
+Handle storage quota limits and browser eviction safely.
+
+Never promise unlimited browser storage because browser storage is subject to device and browser limitations.
+
+Do not require internet connectivity for ordinary authorized offline activities.
+
+---
+
+# PART 14: OFFLINE SECURITY TESTING
+
+Perform controlled security testing using a separate test database or verified test copy.
+
+Test all of the following:
+
+1. Unauthorized login.
+2. Repeated incorrect passwords.
+3. Expired sessions.
+4. Unauthorized administrator access.
+5. Unauthorized device access.
+6. IndexedDB data manipulation.
+7. LocalStorage manipulation.
+8. Encrypted database integrity.
+9. Backup modification.
+10. Unauthorized backup restoration.
+11. Unauthorized data export.
+12. Service Worker modification.
+13. Cache manipulation.
+14. Application file modification.
+15. Unauthorized application updates.
+16. Offline logout.
+17. Offline session expiration.
+18. Data recovery.
+19. Application restart.
+20. Offline operation after restarting the computer.
+21. Permission escalation attempts.
+22. Unauthorized account switching.
+23. Malicious imported HTML.
+24. Invalid backup files.
+25. Interrupted database migrations.
+26. Encryption-key recovery.
+27. Encryption-key rotation.
+28. Audit-record integrity.
+29. Browser storage quota exhaustion.
+30. Application recovery after an integrity failure.
+
+### Testing rules
+
+- Do not perform destructive testing on real user data.
+- Do not delete production databases during testing.
+- Create a verified backup before migration.
+- Test both authorized and unauthorized operations.
+- Verify existing features after each security modification.
+- Document every failed test.
+- Do not claim that an untested security feature is complete.
+
+---
+
+# PART 15: IMPLEMENTATION AND MIGRATION PROCEDURES
+
+Follow this exact implementation sequence.
+
+### Phase 1: Complete application inspection
+
+1. Inspect the entire existing application.
+2. Identify every existing file and its purpose.
+3. Identify authentication architecture.
+4. Identify role and permission architecture.
+5. Identify all IndexedDB databases and stores.
+6. Identify all LocalStorage keys.
+7. Identify backup and recovery mechanisms.
+8. Identify Service Worker and cache architecture.
+9. Identify external dependencies.
+10. Identify existing security weaknesses.
+
+### Phase 2: Baseline protection
+
+1. Create a complete source-code backup.
+2. Create a verified database backup.
+3. Preserve existing application configuration.
+4. Record existing file versions and hashes.
+5. Document existing application behavior.
+6. Establish a rollback procedure.
+
+### Phase 3: Incremental security implementation
+
+Implement security features in controlled stages:
+
+1. Authentication security.
+2. Permission and session security.
+3. Device authorization.
+4. Local database encryption.
+5. Data integrity protection.
+6. Application anti-tampering.
+7. Service Worker and cache protection.
+8. Backup and recovery security.
+9. Audit and monitoring.
+10. Frontend security.
+11. Export protection.
+12. Final security verification.
+
+### Phase 4: Safe migration
+
+For every database or security migration:
+
+1. Inspect the existing schema.
+2. Preserve existing stores and records.
+3. Use versioned database migrations.
+4. Create a verified pre-migration backup.
+5. Perform migration transactionally where supported.
+6. Verify record counts and integrity.
+7. Verify existing application functions.
+8. Preserve rollback and recovery capability.
+9. Never silently discard incompatible records.
+10. Do not mark migration complete until verification passes.
+
+### Phase 5: Final integration
+
+1. Integrate security improvements into the existing application.
+2. Preserve all existing UI and layouts.
+3. Preserve all existing workflows.
+4. Preserve all existing calculations.
+5. Preserve all existing buttons and navigation.
+6. Preserve desktop and mobile responsiveness.
+7. Preserve all existing offline functionality.
+8. Remove only security-related code that has been safely replaced.
+9. Verify the final application.
+
+---
+
+# PART 16: FINAL VERIFICATION CHECKLIST
+
+Verify all of the following before reporting completion:
+
+- Application launches without internet.
+- Offline login works.
+- Existing administrator accounts work.
+- Existing ordinary-user accounts work.
+- Administrator permissions work.
+- Ordinary-user permissions work.
+- Device verification works.
+- Session expiration works.
+- Automatic logout works.
+- Unauthorized access is denied.
+- Encrypted local records can be read by authorized users.
+- Encryption integrity checks work.
+- Application integrity checks work.
+- Backup creation works.
+- Backup restoration works.
+- Existing data is preserved.
+- Existing reports work.
+- Existing exports work.
+- Existing calculations work.
+- Existing buttons work.
+- Existing navigation works.
+- Existing authentication works.
+- Existing database functions work.
+- Existing desktop interface works.
+- Existing mobile interface works.
+- PWA installation works.
+- Service Worker works.
+- Application updates work.
+- Recovery procedures work.
+- No unrelated functionality has been removed.
+
+---
+
+# PART 17: FINAL SECURITY IMPLEMENTATION REPORT
+
+After completing the work, provide a factual implementation report containing:
+
+1. Security features successfully implemented.
+2. Security features partially implemented.
+3. Security features not implemented.
+4. All existing files inspected.
+5. All files modified.
+6. All new files created, if necessary.
+7. Database changes and migrations.
+8. Authentication changes.
+9. Encryption mechanisms.
+10. Device authorization mechanisms.
+11. Application integrity mechanisms.
+12. Backup and recovery mechanisms.
+13. Audit and monitoring mechanisms.
+14. Security tests performed.
+15. Tests passed.
+16. Tests failed.
+17. Remaining vulnerabilities.
+18. Known offline security limitations.
+19. Manual configuration requirements.
+20. Backup and recovery instructions.
+21. Deployment instructions.
+22. Rollback instructions.
+23. Recommendations for future security improvements.
+
+Distinguish clearly between:
+
+- Implemented and verified.
+- Implemented but not fully tested.
+- Partially implemented.
+- Not implemented.
+- Technically impossible within the current architecture.
+
+Never report a feature as completed merely because code was generated.
+
+---
+
+# PART 18: ADDITIONAL NON-NEGOTIABLE SECURITY RULES
+
+1. No plaintext passwords.
+2. No hardcoded encryption secrets.
+3. No simulated authentication.
+4. No simulated device verification.
+5. No fake encryption.
+6. No fake integrity checks.
+7. No fake audit logs.
+8. No frontend-only administrator security.
+9. No unnecessary internet dependencies.
+10. No unnecessary paid services.
+11. No unauthorized database resets.
+12. No silent backup replacement.
+13. No silent data deletion.
+14. No destructive database migration.
+15. No unnecessary application redesign.
+16. No unnecessary architecture replacement.
+17. No unrelated feature removal.
+18. No unverified security claims.
+19. No weakening of existing offline functionality.
+20. No changes outside the scope of the security improvements.
+
+### REALISTIC SECURITY LIMITATIONS
+
+A browser-based offline application cannot guarantee absolute protection against an attacker who has complete control of the computer, operating system, browser profile, or application files.
+
+The implementation must honestly account for:
+
+- Browser developer tools.
+- Local filesystem access.
+- Browser-profile access.
+- Browser storage extraction.
+- Runtime JavaScript inspection.
+- Source-code reverse engineering.
+- Client-side security-check bypasses.
+- Encryption-key exposure during authorized use.
+- Local backup theft.
+- Browser storage limitations.
+- Offline device-verification limitations.
+
+Use layered security rather than promising impossible protection.
+
+Prioritize encryption, access control, integrity verification, secure recovery, and prevention of unauthorized application operations.
+
+---
+
+# FINAL MANDATORY INSTRUCTION
+
+**MAKE MY EXISTING APPLICATION AS SECURE AS PRACTICALLY POSSIBLE WHILE KEEPING IT FULLY FUNCTIONAL OFFLINE.**
+
+Inspect the complete existing application before modifying anything.
+
+Do not rebuild, replace, redesign, or unnecessarily restructure the application.
+
+Do not modify unrelated features.
+
+Do not remove existing functionality.
+
+Do not destroy, reset, overwrite, or corrupt existing user data.
+
+Do not compromise the existing authentication system, database, interface, calculations, reports, buttons, navigation, or workflows.
+
+Implement only genuine, technically appropriate, testable security improvements.
+
+Preserve the existing architecture wherever possible.
+
+Prioritize:
+
+1. Maximum practical offline security.
+2. Protection of existing user data.
+3. Secure authentication and administrator authorization.
+4. Strong local database encryption.
+5. Device authorization.
+6. Application integrity and anti-tampering.
+7. Secure offline backup and recovery.
+8. Complete application functionality.
+9. Reliable desktop and mobile operation.
+10. Long-term maintainability.
+
+**FINAL ABSOLUTE RULE: KEEP EVERYTHING ELSE 100% AS IT IS. MODIFY ONLY WHAT IS NECESSARY FOR THE REQUESTED OFFLINE SECURITY UPGRADES.**

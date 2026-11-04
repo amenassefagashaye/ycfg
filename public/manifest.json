@@ -1,0 +1,16 @@
+{
+  "name": "Eras-Birhan Pharmaceuticals Stock Management System (EBP-SMS)",
+  "short_name": "EBP-SMS",
+  "description": "Enterprise offline pharmaceutical stock management and security system",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0a1f3d",
+  "theme_color": "#ffd700",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230a1f3d'/><path d='M30 50h40M50 30v40' stroke='%23ffd700' stroke-width='12' stroke-linecap='round'/></svg>",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
