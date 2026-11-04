@@ -27,63 +27,16 @@ import {
   UserRole,
   SensitiveOperation
 } from './security/engine';
+import { SecureIndexedDBManager } from './security/indexeddb';
+import { UnitConversionSystem } from './security/conversion';
+import type { ItemConversionFactors } from './security/conversion';
+export { UnitConversionSystem };
+export type { ItemConversionFactors };
 
 // Declaration for third-party libraries loaded via CDN/offline cache
 declare const XLSX: any;
 declare const mammoth: any;
 declare const Chart: any;
-
-// ============================================================
-// SHARED UNIT CONVERSION SYSTEM - Single source of truth
-// ============================================================
-export const UnitConversionSystem = {
-  getItemFactors(item: any) {
-    if (!item) return { regToBase: 1, dispToBase: 1 };
-    return {
-      regToBase: parseFloat(item.registeredToBaseFactor) || 1,
-      dispToBase: parseFloat(item.displayToBaseFactor) || 1
-    };
-  },
-  baseToDisplay(baseQty: number, item: any) {
-    const f = this.getItemFactors(item);
-    return baseQty / f.dispToBase;
-  },
-  baseToRegister(baseQty: number, item: any) {
-    const f = this.getItemFactors(item);
-    return baseQty / f.regToBase;
-  },
-  displayToBase(dispQty: number, item: any) {
-    const f = this.getItemFactors(item);
-    return dispQty * f.dispToBase;
-  },
-  displayToRegister(dispQty: number, item: any) {
-    return this.baseToRegister(this.displayToBase(dispQty, item), item);
-  },
-  registerToBase(regQty: number, item: any) {
-    const f = this.getItemFactors(item);
-    return regQty * f.regToBase;
-  },
-  registerToDisplay(regQty: number, item: any) {
-    return this.baseToDisplay(this.registerToBase(regQty, item), item);
-  },
-  toBase(qty: number, unitType: string, item: any) {
-    if (unitType === 'base') return qty;
-    if (unitType === 'register') return this.registerToBase(qty, item);
-    if (unitType === 'display') return this.displayToBase(qty, item);
-    return qty;
-  },
-  fromBase(baseQty: number, item: any) {
-    return {
-      base: baseQty,
-      register: this.baseToRegister(baseQty, item),
-      display: this.baseToDisplay(baseQty, item)
-    };
-  },
-  formatQty(qty: number) {
-    if (Math.abs(qty) < 0.0001) return '0';
-    return parseFloat(qty.toFixed(4)).toString();
-  }
-};
 
 export function toggleDetail(detailId: string) {
   const element = document.getElementById(detailId);
@@ -413,6 +366,7 @@ export class UltraStockSystem {
   lastSyncTime: Date | null = null;
   supabase: any = null;
   exportEnabled = true;
+  idb = new SecureIndexedDBManager();
 
   // Security Session State
   sessionKey: CryptoKey | null = null;
@@ -479,6 +433,7 @@ export class UltraStockSystem {
   }
 
   async init() {
+    await this.idb.init();
     this.initDeviceSecurity();
     await this.loadFromLocalStorage();
     this.setupEventListeners();
@@ -681,13 +636,21 @@ export class UltraStockSystem {
       if (rawStock) {
         try {
           const parsed = JSON.parse(rawStock);
-          if (parsed && parsed.alg === 'AES-256-GCM' && this.sessionKey) {
-            const decrypted = await decryptRecord<any>(parsed, this.sessionKey);
-            this.stockItems = decrypted.stockItems || [];
-            this.currentId = decrypted.currentId || 1;
+          if (parsed && parsed.alg === 'AES-256-GCM') {
+            if (this.sessionKey) {
+              const decrypted = await decryptRecord<any>(parsed, this.sessionKey);
+              this.stockItems = Array.isArray(decrypted?.stockItems)
+                ? decrypted.stockItems
+                : (Array.isArray(decrypted) ? decrypted : []);
+              this.currentId = decrypted?.currentId || (this.stockItems.length > 0 ? Math.max(...this.stockItems.map(i => i.id || 0)) + 1 : 1);
+            } else {
+              this.stockItems = [];
+            }
           } else {
-            this.stockItems = parsed.stockItems || [];
-            this.currentId = parsed.currentId || 1;
+            this.stockItems = Array.isArray(parsed?.stockItems)
+              ? parsed.stockItems
+              : (Array.isArray(parsed) ? parsed : []);
+            this.currentId = parsed?.currentId || 1;
           }
         } catch {
           this.stockItems = [];
@@ -699,15 +662,23 @@ export class UltraStockSystem {
       if (savedSales) {
         try {
           const parsed = JSON.parse(savedSales);
-          if (parsed && parsed.alg === 'AES-256-GCM' && this.sessionKey) {
-            this.salesData = await decryptRecord<any[]>(parsed, this.sessionKey);
+          if (parsed && parsed.alg === 'AES-256-GCM') {
+            if (this.sessionKey) {
+              const decrypted = await decryptRecord<any[]>(parsed, this.sessionKey);
+              this.salesData = Array.isArray(decrypted) ? decrypted : [];
+            } else {
+              this.salesData = [];
+            }
           } else {
-            this.salesData = parsed;
+            this.salesData = Array.isArray(parsed) ? parsed : [];
           }
         } catch {
           this.salesData = [];
         }
       }
+
+      if (!Array.isArray(this.stockItems)) this.stockItems = [];
+      if (!Array.isArray(this.salesData)) this.salesData = [];
 
       // 4. Audit Trail
       const savedAudit = localStorage.getItem('ebp-sms-audit');
@@ -753,6 +724,27 @@ export class UltraStockSystem {
         }
       });
 
+      // Check IndexedDB if LocalStorage had no items (dual-persistence recovery)
+      if (this.stockItems.length === 0) {
+        const idbStock = await this.idb.getAll('stock');
+        if (idbStock && idbStock.length > 0) {
+          this.stockItems = idbStock;
+          this.currentId = Math.max(...this.stockItems.map(i => i.id || 0)) + 1;
+        }
+      }
+      if (this.salesData.length === 0) {
+        const idbSales = await this.idb.getAll('sales');
+        if (idbSales && idbSales.length > 0) {
+          this.salesData = idbSales;
+        }
+      }
+      if (this.auditTrail.length === 0) {
+        const idbAudit = await this.idb.getAll('audit');
+        if (idbAudit && idbAudit.length > 0) {
+          this.auditTrail = idbAudit;
+        }
+      }
+
       this.auditCounter = this.auditTrail.length > 0 ? Math.max(...this.auditTrail.map(a => a.id)) + 1 : 1;
     } catch (err) {
       console.error('[Storage] Load error:', err);
@@ -782,6 +774,18 @@ export class UltraStockSystem {
       localStorage.setItem('ebp-sms-share-history', JSON.stringify(this.shareHistory));
       localStorage.setItem('ebp-sms-supervisors', JSON.stringify(this.supervisors));
       localStorage.setItem('ebp-sms-authorized-devices', JSON.stringify(this.authorizedDevices));
+
+      // Dual persistence to IndexedDB
+      try {
+        await this.idb.saveAll('stock', this.stockItems);
+        await this.idb.saveAll('sales', this.salesData);
+        await this.idb.saveAll('audit', this.auditTrail);
+        await this.idb.saveAll('transactions', this.transactions);
+        await this.idb.saveAll('devices', this.authorizedDevices);
+        await this.idb.setKey('settings', 'current', this.settings);
+      } catch (idbErr) {
+        console.warn('[IndexedDB] Dual-sync notice:', idbErr);
+      }
 
       if (this.isOnline && this.supabase) this.syncWithSupabase();
     } catch (err) {
@@ -897,6 +901,11 @@ export class UltraStockSystem {
       try {
         const salt = 'ebp-sms-session-salt-2026-' + this.currentDeviceId.substring(0, 8);
         this.sessionKey = await deriveEncryptionKey(password + ':' + this.currentDeviceId, salt.padEnd(32, '0'));
+        // Decrypt records now that sessionKey is available
+        await this.loadFromLocalStorage();
+        this.updateDashboardFromCards();
+        this.setupUnitLists();
+        this.renderSalesHistory();
       } catch (err) {
         console.warn('[Crypto] Session key derivation warning:', err);
       }
@@ -1176,41 +1185,199 @@ export class UltraStockSystem {
     const unitSelector = document.getElementById('unitSelector') as HTMLSelectElement;
     const baseGroup = document.getElementById('baseUnitGroup');
     const regGroup = document.getElementById('registeredUnitGroup');
+    const regFactorGroup = document.getElementById('regFactorGroup');
     const dispGroup = document.getElementById('displayUnitGroup');
+    const dispFactorGroup = document.getElementById('dispFactorGroup');
 
-    if (unitSelector && baseGroup && regGroup && dispGroup) {
+    if (unitSelector) {
       unitSelector.addEventListener('change', () => {
         const val = unitSelector.value;
-        baseGroup.style.display = val === 'baseUnit' ? 'block' : 'none';
-        regGroup.style.display = val === 'registeredUnit' ? 'block' : 'none';
-        dispGroup.style.display = val === 'displayUnit' ? 'block' : 'none';
+        if (val === 'allUnits') {
+          if (baseGroup) baseGroup.style.display = 'block';
+          if (regGroup) regGroup.style.display = 'block';
+          if (regFactorGroup) regFactorGroup.style.display = 'block';
+          if (dispGroup) dispGroup.style.display = 'block';
+          if (dispFactorGroup) dispFactorGroup.style.display = 'block';
+        } else if (val === 'baseUnit') {
+          if (baseGroup) baseGroup.style.display = 'block';
+          if (regGroup) regGroup.style.display = 'none';
+          if (regFactorGroup) regFactorGroup.style.display = 'none';
+          if (dispGroup) dispGroup.style.display = 'none';
+          if (dispFactorGroup) dispFactorGroup.style.display = 'none';
+        } else if (val === 'registeredUnit') {
+          if (baseGroup) baseGroup.style.display = 'none';
+          if (regGroup) regGroup.style.display = 'block';
+          if (regFactorGroup) regFactorGroup.style.display = 'block';
+          if (dispGroup) dispGroup.style.display = 'none';
+          if (dispFactorGroup) dispFactorGroup.style.display = 'none';
+        } else if (val === 'displayUnit') {
+          if (baseGroup) baseGroup.style.display = 'none';
+          if (regGroup) regGroup.style.display = 'none';
+          if (regFactorGroup) regFactorGroup.style.display = 'none';
+          if (dispGroup) dispGroup.style.display = 'block';
+          if (dispFactorGroup) dispFactorGroup.style.display = 'block';
+        }
       });
     }
 
+    // Bidirectional Quantity Syncing
     const qtyDisplayInput = document.getElementById('qtyDisplay') as HTMLInputElement;
+    const qtyRegisterInput = document.getElementById('qtyRegister') as HTMLInputElement;
+    const qtyBaseInput = document.getElementById('qtyBase') as HTMLInputElement;
+
+    const getFactors = () => {
+      const regToBase = parseFloat((document.getElementById('registeredToBaseFactor') as HTMLInputElement)?.value) || 100;
+      const dispToBase = parseFloat((document.getElementById('displayToBaseFactor') as HTMLInputElement)?.value) || 10;
+      return { regToBase: regToBase > 0 ? regToBase : 1, dispToBase: dispToBase > 0 ? dispToBase : 1 };
+    };
+
     if (qtyDisplayInput) {
       qtyDisplayInput.addEventListener('input', () => {
         const dispQty = parseFloat(qtyDisplayInput.value) || 0;
-        const dispToBase = parseFloat((document.getElementById('displayToBaseFactor') as HTMLInputElement)?.value) || 1;
-        const regToBase = parseFloat((document.getElementById('registeredToBaseFactor') as HTMLInputElement)?.value) || 1;
-        (document.getElementById('qtyBase') as HTMLInputElement).value = (dispQty * dispToBase).toFixed(4);
-        (document.getElementById('qtyRegister') as HTMLInputElement).value = (dispQty * dispToBase / regToBase).toFixed(4);
+        const { regToBase, dispToBase } = getFactors();
+        const baseQty = dispQty * dispToBase;
+        if (qtyBaseInput) qtyBaseInput.value = baseQty.toFixed(4);
+        if (qtyRegisterInput) qtyRegisterInput.value = (baseQty / regToBase).toFixed(4);
+        this.updateRegisterMatrix();
       });
     }
 
+    if (qtyRegisterInput) {
+      qtyRegisterInput.addEventListener('input', () => {
+        const regQty = parseFloat(qtyRegisterInput.value) || 0;
+        const { regToBase, dispToBase } = getFactors();
+        const baseQty = regQty * regToBase;
+        const dispQty = baseQty / dispToBase;
+        if (qtyBaseInput) qtyBaseInput.value = baseQty.toFixed(4);
+        if (qtyDisplayInput) qtyDisplayInput.value = dispQty.toFixed(4);
+        this.updateRegisterMatrix();
+      });
+    }
+
+    if (qtyBaseInput) {
+      qtyBaseInput.addEventListener('input', () => {
+        const baseQty = parseFloat(qtyBaseInput.value) || 0;
+        const { regToBase, dispToBase } = getFactors();
+        if (qtyDisplayInput) qtyDisplayInput.value = (baseQty / dispToBase).toFixed(4);
+        if (qtyRegisterInput) qtyRegisterInput.value = (baseQty / regToBase).toFixed(4);
+        this.updateRegisterMatrix();
+      });
+    }
+
+    // Live Matrix listeners for factor or name changes
+    ['baseUnit', 'registeredUnit', 'displayUnit', 'registeredToBaseFactor', 'displayToBaseFactor'].forEach(id => {
+      document.getElementById(id)?.addEventListener('input', () => {
+        const dispQty = parseFloat(qtyDisplayInput?.value || '0') || 0;
+        const { regToBase, dispToBase } = getFactors();
+        const baseQty = dispQty * dispToBase;
+        if (qtyBaseInput) qtyBaseInput.value = baseQty.toFixed(4);
+        if (qtyRegisterInput) qtyRegisterInput.value = (baseQty / regToBase).toFixed(4);
+        this.applyMarkup();
+        this.updateRegisterMatrix();
+      });
+    });
+
+    ['purchasePricePerDisplay', 'markup', 'discountPercent'].forEach(id => {
+      document.getElementById(id)?.addEventListener('input', () => {
+        this.applyMarkup();
+        this.updateRegisterMatrix();
+      });
+    });
+
+    document.getElementById('sellingPricePerDisplay')?.addEventListener('input', () => {
+      const purchase = parseFloat((document.getElementById('purchasePricePerDisplay') as HTMLInputElement)?.value) || 0;
+      const selling = parseFloat((document.getElementById('sellingPricePerDisplay') as HTMLInputElement)?.value) || 0;
+      const discount = parseFloat((document.getElementById('discountPercent') as HTMLInputElement)?.value) || 0;
+      if (purchase > 0) {
+        const effectiveCost = purchase * (1 - discount / 100);
+        if (effectiveCost > 0) {
+          const markupCalc = ((selling / effectiveCost) - 1) * 100;
+          const markupInput = document.getElementById('markup') as HTMLInputElement;
+          if (markupInput) markupInput.value = markupCalc.toFixed(1);
+        }
+      }
+      this.updateRegisterMatrix();
+    });
+
+    // Reduce page unit selector
     const reduceUnitSelector = document.getElementById('reduceUnitSelector') as HTMLSelectElement;
     const redBaseGroup = document.getElementById('reduceBaseUnitGroup');
     const redRegGroup = document.getElementById('reduceRegUnitGroup');
     const redDispGroup = document.getElementById('reduceDisplayUnitGroup');
 
-    if (reduceUnitSelector && redBaseGroup && redRegGroup && redDispGroup) {
+    if (reduceUnitSelector) {
       reduceUnitSelector.addEventListener('change', () => {
         const val = reduceUnitSelector.value;
-        redBaseGroup.style.display = val === 'baseUnit' ? 'block' : 'none';
-        redRegGroup.style.display = val === 'registeredUnit' ? 'block' : 'none';
-        redDispGroup.style.display = val === 'displayUnit' ? 'block' : 'none';
+        if (redBaseGroup) redBaseGroup.style.display = val === 'baseUnit' ? 'block' : 'none';
+        if (redRegGroup) redRegGroup.style.display = val === 'registeredUnit' ? 'block' : 'none';
+        if (redDispGroup) redDispGroup.style.display = val === 'displayUnit' ? 'block' : 'none';
+        this.updateReduceDetails();
       });
     }
+
+    // Initialize initial matrix
+    setTimeout(() => this.updateRegisterMatrix(), 100);
+  }
+
+  updateRegisterMatrix() {
+    const baseUnit = (document.getElementById('baseUnit') as HTMLInputElement)?.value.trim() || 'tablet';
+    const regUnit = (document.getElementById('registeredUnit') as HTMLInputElement)?.value.trim() || 'box';
+    const dispUnit = (document.getElementById('displayUnit') as HTMLInputElement)?.value.trim() || 'strip';
+    const regFactor = parseFloat((document.getElementById('registeredToBaseFactor') as HTMLInputElement)?.value) || 100;
+    const dispFactor = parseFloat((document.getElementById('displayToBaseFactor') as HTMLInputElement)?.value) || 10;
+    const dispQty = parseFloat((document.getElementById('qtyDisplay') as HTMLInputElement)?.value) || 0;
+    const purchaseDisp = parseFloat((document.getElementById('purchasePricePerDisplay') as HTMLInputElement)?.value) || 0;
+    const markup = parseFloat((document.getElementById('markup') as HTMLInputElement)?.value) || 0;
+    const discount = parseFloat((document.getElementById('discountPercent') as HTMLInputElement)?.value) || 0;
+
+    const itemDummy = {
+      baseUnit,
+      registeredUnit: regUnit,
+      displayUnit: dispUnit,
+      registeredToBaseFactor: regFactor,
+      displayToBaseFactor: dispFactor
+    };
+
+    // Calculate quantities
+    const baseQty = dispQty * dispFactor;
+    const regQty = baseQty / regFactor;
+
+    // Calculate prices
+    const hierarchy = UnitConversionSystem.calculatePricingHierarchy(purchaseDisp, 'display', markup, discount, itemDummy);
+
+    // Update Equation
+    const eqEl = document.getElementById('matrixEquation');
+    if (eqEl) eqEl.textContent = UnitConversionSystem.getUnitEquation(itemDummy);
+
+    // Update Base Unit Card
+    const baseNameEl = document.getElementById('matrixBaseName');
+    const baseQtyEl = document.getElementById('matrixBaseQty');
+    const baseCostEl = document.getElementById('matrixBaseCost');
+    const baseSellEl = document.getElementById('matrixBaseSell');
+    if (baseNameEl) baseNameEl.textContent = baseUnit;
+    if (baseQtyEl) baseQtyEl.textContent = `${baseQty.toFixed(2)} ${baseUnit}`;
+    if (baseCostEl) baseCostEl.textContent = `ETB ${hierarchy.purchase.base.toFixed(2)}`;
+    if (baseSellEl) baseSellEl.textContent = `ETB ${hierarchy.selling.base.toFixed(2)}`;
+
+    // Update Display Unit Card
+    const dispNameEl = document.getElementById('matrixDispName');
+    const dispQtyEl = document.getElementById('matrixDispQty');
+    const dispCostEl = document.getElementById('matrixDispCost');
+    const dispSellEl = document.getElementById('matrixDispSell');
+    if (dispNameEl) dispNameEl.textContent = dispUnit;
+    if (dispQtyEl) dispQtyEl.textContent = `${dispQty.toFixed(2)} ${dispUnit}`;
+    if (dispCostEl) dispCostEl.textContent = `ETB ${hierarchy.purchase.display.toFixed(2)}`;
+    if (dispSellEl) dispSellEl.textContent = `ETB ${hierarchy.selling.display.toFixed(2)}`;
+
+    // Update Register Unit Card
+    const regNameEl = document.getElementById('matrixRegName');
+    const regQtyEl = document.getElementById('matrixRegQty');
+    const regCostEl = document.getElementById('matrixRegCost');
+    const regSellEl = document.getElementById('matrixRegSell');
+    if (regNameEl) regNameEl.textContent = regUnit;
+    if (regQtyEl) regQtyEl.textContent = `${regQty.toFixed(2)} ${regUnit}`;
+    if (regCostEl) regCostEl.textContent = `ETB ${hierarchy.purchase.register.toFixed(2)}`;
+    if (regSellEl) regSellEl.textContent = `ETB ${hierarchy.selling.register.toFixed(2)}`;
   }
 
   enableExport() {
@@ -1268,6 +1435,7 @@ export class UltraStockSystem {
     selling = selling * (1 - discount / 100);
     const sellingInput = document.getElementById('sellingPricePerDisplay') as HTMLInputElement;
     if (sellingInput) sellingInput.value = selling.toFixed(2);
+    this.updateRegisterMatrix();
   }
 
   autoFillItemDetails() {
@@ -1290,7 +1458,14 @@ export class UltraStockSystem {
       (document.getElementById('minStockDisplay') as HTMLInputElement).value = existing.minStockDisplay || 10;
       (document.getElementById('maxStockDisplay') as HTMLInputElement).value = existing.maxStockDisplay || 100;
       (document.getElementById('reorderLevelDisplay') as HTMLInputElement).value = existing.reorderLevelDisplay || 20;
+      if (existing.purchasePricePerDisplay) {
+        (document.getElementById('purchasePricePerDisplay') as HTMLInputElement).value = String(existing.purchasePricePerDisplay);
+      }
+      if (existing.markup) {
+        (document.getElementById('markup') as HTMLInputElement).value = String(existing.markup);
+      }
       this.applyMarkup();
+      this.updateRegisterMatrix();
       this.showToast('Auto-filled from existing stock item', 'info');
     }
   }
@@ -1878,10 +2053,15 @@ export class UltraStockSystem {
         <td>${(item.quantityIssued || 0).toFixed(2)}</td>
         <td>${expectedEnding.toFixed(2)}</td>
         <td><input type="number" class="physical-count-input" data-id="${item.id}" value="${physicalCount.toFixed(2)}" style="width:80px; padding:4px;"></td>
-        <td class="${variance >= 0 ? 'variance-positive' : 'variance-negative'}">${variance >= 0 ? '+' : ''}${variance.toFixed(2)}</td>
         <td>${item.minStockDisplay}/${item.reorderLevelDisplay}/${item.maxStockDisplay}</td>
-        <td>ETB ${item.purchasePricePerDisplay.toFixed(2)}</td>
-        <td>ETB ${item.sellingPricePerDisplay.toFixed(2)}</td>
+        <td>
+          ETB ${item.purchasePricePerDisplay.toFixed(2)} / ${item.displayUnit}
+          <div style="font-size:10px; color:var(--gray);">ETB ${(item.purchasePricePerDisplay / (item.displayToBaseFactor || 1)).toFixed(2)}/${item.baseUnit} | ETB ${((item.purchasePricePerDisplay / (item.displayToBaseFactor || 1)) * (item.registeredToBaseFactor || 1)).toFixed(2)}/${item.registeredUnit}</div>
+        </td>
+        <td>
+          ETB ${item.sellingPricePerDisplay.toFixed(2)} / ${item.displayUnit}
+          <div style="font-size:10px; color:var(--success);">ETB ${(item.sellingPricePerDisplay / (item.displayToBaseFactor || 1)).toFixed(2)}/${item.baseUnit} | ETB ${((item.sellingPricePerDisplay / (item.displayToBaseFactor || 1)) * (item.registeredToBaseFactor || 1)).toFixed(2)}/${item.registeredUnit}</div>
+        </td>
         <td>${item.markup}%</td>
         <td><strong>ETB ${total.toFixed(2)}</strong></td>
         <td>${item.batchNumber}</td>
@@ -1983,10 +2163,12 @@ export class UltraStockSystem {
       (document.getElementById('itemType') as HTMLInputElement).value = item.type || '';
       (document.getElementById('baseUnit') as HTMLInputElement).value = item.baseUnit;
       (document.getElementById('registeredUnit') as HTMLInputElement).value = item.registeredUnit;
-      (document.getElementById('registeredToBaseFactor') as HTMLInputElement).value = item.registeredToBaseFactor;
+      (document.getElementById('registeredToBaseFactor') as HTMLInputElement).value = String(item.registeredToBaseFactor || 100);
       (document.getElementById('displayUnit') as HTMLInputElement).value = item.displayUnit;
-      (document.getElementById('displayToBaseFactor') as HTMLInputElement).value = item.displayToBaseFactor;
+      (document.getElementById('displayToBaseFactor') as HTMLInputElement).value = String(item.displayToBaseFactor || 10);
       (document.getElementById('qtyDisplay') as HTMLInputElement).value = item.quantityDisplay;
+      (document.getElementById('qtyRegister') as HTMLInputElement).value = String(item.quantityRegistered || (item.quantityDisplay * (item.displayToBaseFactor || 10) / (item.registeredToBaseFactor || 100)).toFixed(4));
+      (document.getElementById('qtyBase') as HTMLInputElement).value = String(item.quantityBase || (item.quantityDisplay * (item.displayToBaseFactor || 10)).toFixed(4));
       (document.getElementById('purchasePricePerDisplay') as HTMLInputElement).value = item.purchasePricePerDisplay;
       (document.getElementById('markup') as HTMLInputElement).value = item.markup;
       (document.getElementById('sellingPricePerDisplay') as HTMLInputElement).value = item.sellingPricePerDisplay;
@@ -1995,6 +2177,7 @@ export class UltraStockSystem {
       this.isEditing = true;
       this.editingId = id;
       (document.getElementById('saveBtn') as HTMLElement).innerHTML = '<i class="fas fa-sync-alt"></i> Update Item';
+      this.updateRegisterMatrix();
     }, 50);
   }
 
@@ -2093,7 +2276,18 @@ export class UltraStockSystem {
     (document.getElementById('stockForm') as HTMLFormElement)?.reset();
     (document.getElementById('expiryDate') as HTMLInputElement).value = new Date().toISOString().split('T')[0];
     (document.getElementById('markup') as HTMLInputElement).value = this.settings.defaultMarkup;
+    const regFactorInp = document.getElementById('registeredToBaseFactor') as HTMLInputElement;
+    const dispFactorInp = document.getElementById('displayToBaseFactor') as HTMLInputElement;
+    const baseUnitInp = document.getElementById('baseUnit') as HTMLInputElement;
+    const regUnitInp = document.getElementById('registeredUnit') as HTMLInputElement;
+    const dispUnitInp = document.getElementById('displayUnit') as HTMLInputElement;
+    if (regFactorInp) regFactorInp.value = '100';
+    if (dispFactorInp) dispFactorInp.value = '10';
+    if (baseUnitInp) baseUnitInp.value = 'tablet';
+    if (regUnitInp) regUnitInp.value = 'box';
+    if (dispUnitInp) dispUnitInp.value = 'strip';
     this.applyMarkup();
+    this.updateRegisterMatrix();
   }
 
   // ============================================================
@@ -2112,14 +2306,15 @@ export class UltraStockSystem {
       <td><input type="text" class="sales-batch" readonly style="width:100px;"></td>
       <td><input type="text" class="sales-expiry" readonly style="width:100px;"></td>
       <td>
-        <div style="display:flex; gap:4px;">
+        <div style="display:flex; gap:4px; align-items:center;">
           <input type="number" class="sales-quantity" min="0.01" step="0.01" style="width:70px;" value="1">
-          <select class="sales-unit-dropdown" style="width:80px;">
+          <select class="sales-unit-dropdown" style="width:115px; font-size:11px;">
             <option value="display" selected>Display</option>
             <option value="base">Base</option>
             <option value="register">Register</option>
           </select>
         </div>
+        <div class="sales-stock-hint" style="font-size:10px; color:var(--gray); margin-top:2px;"></div>
       </td>
       <td><input type="number" class="sales-price" step="0.01" style="width:90px;" value="0"></td>
       <td><input type="number" class="sales-total" readonly style="width:90px;" class="total-display"></td>
@@ -2131,7 +2326,8 @@ export class UltraStockSystem {
     tbody.appendChild(tr);
 
     tr.querySelector('.sales-item')?.addEventListener('input', () => this.updateSalesRow(rowId));
-    tr.querySelectorAll('.sales-quantity, .sales-price, .sales-markup, .sales-discount, .sales-vat, .sales-unit-dropdown').forEach(inp => {
+    tr.querySelector('.sales-unit-dropdown')?.addEventListener('change', () => this.onSalesUnitChange(rowId));
+    tr.querySelectorAll('.sales-quantity, .sales-price, .sales-markup, .sales-discount, .sales-vat').forEach(inp => {
       inp.addEventListener('input', () => this.calcSalesRow(rowId));
     });
     tr.querySelector('.remove-row-btn')?.addEventListener('click', () => {
@@ -2168,9 +2364,51 @@ export class UltraStockSystem {
       (row.querySelector('.sales-type') as HTMLInputElement).value = item.type || '';
       (row.querySelector('.sales-batch') as HTMLInputElement).value = item.batchNumber || '';
       (row.querySelector('.sales-expiry') as HTMLInputElement).value = item.expiryDate || '';
-      (row.querySelector('.sales-price') as HTMLInputElement).value = item.sellingPricePerDisplay.toFixed(2);
       (row.querySelector('.sales-markup') as HTMLInputElement).value = item.markup;
+
+      // Populate unit dropdown with item units and preserved selection
+      const unitDropdown = row.querySelector('.sales-unit-dropdown') as HTMLSelectElement;
+      if (unitDropdown) {
+        const currentVal = unitDropdown.value || 'display';
+        unitDropdown.innerHTML = `
+          <option value="display" ${currentVal === 'display' ? 'selected' : ''}>${item.displayUnit || 'Display'} (Display)</option>
+          <option value="base" ${currentVal === 'base' ? 'selected' : ''}>${item.baseUnit || 'Base'} (Base)</option>
+          <option value="register" ${currentVal === 'register' ? 'selected' : ''}>${item.registeredUnit || 'Register'} (Register)</option>
+        `;
+      }
+
+      // Compute price for the selected unit
+      const selectedUnit = (row.querySelector('.sales-unit-dropdown') as HTMLSelectElement)?.value || 'display';
+      const unitPrice = UnitConversionSystem.getPriceForUnit(item.sellingPricePerDisplay, selectedUnit, item);
+      (row.querySelector('.sales-price') as HTMLInputElement).value = unitPrice.toFixed(2);
+
+      // Display available in selected unit
+      const availInUnit = UnitConversionSystem.convertQty(item.quantityDisplay, 'display', selectedUnit, item);
+      const hint = row.querySelector('.sales-stock-hint') as HTMLElement;
+      const unitName = selectedUnit === 'base' ? item.baseUnit : selectedUnit === 'register' ? item.registeredUnit : item.displayUnit;
+      if (hint) hint.textContent = `Max: ${availInUnit.toFixed(2)} ${unitName}`;
     }
+    this.calcSalesRow(rowId);
+  }
+
+  onSalesUnitChange(rowId: string) {
+    const row = document.querySelector(`tr[data-id="${rowId}"]`);
+    if (!row) return;
+    const rawVal = (row.querySelector('.sales-item') as HTMLInputElement)?.value || '';
+    const nameOnly = rawVal.split('|')[0].trim();
+    const item = this.stockItems.find(i => i.name.toLowerCase() === nameOnly.toLowerCase() && i.branch === this.currentBranch);
+    if (!item) return;
+
+    const selectedUnit = (row.querySelector('.sales-unit-dropdown') as HTMLSelectElement)?.value || 'display';
+    const unitPrice = UnitConversionSystem.getPriceForUnit(item.sellingPricePerDisplay, selectedUnit, item);
+    (row.querySelector('.sales-price') as HTMLInputElement).value = unitPrice.toFixed(2);
+
+    // Update stock availability hint
+    const availInUnit = UnitConversionSystem.convertQty(item.quantityDisplay, 'display', selectedUnit, item);
+    const hint = row.querySelector('.sales-stock-hint') as HTMLElement;
+    const unitName = selectedUnit === 'base' ? item.baseUnit : selectedUnit === 'register' ? item.registeredUnit : item.displayUnit;
+    if (hint) hint.textContent = `Max: ${availInUnit.toFixed(2)} ${unitName}`;
+
     this.calcSalesRow(rowId);
   }
 
@@ -2203,9 +2441,11 @@ export class UltraStockSystem {
       const nameOnly = rawVal.split('|')[0].trim();
       const item = this.stockItems.find(i => i.name.toLowerCase() === nameOnly.toLowerCase() && i.branch === this.currentBranch);
       const qty = parseFloat((row.querySelector('.sales-quantity') as HTMLInputElement)?.value) || 0;
+      const unitType = (row.querySelector('.sales-unit-dropdown') as HTMLSelectElement)?.value || 'display';
 
       if (item) {
-        cogs += qty * item.purchasePricePerDisplay;
+        const unitCost = UnitConversionSystem.getCostForUnit(item.purchasePricePerDisplay, unitType, item);
+        cogs += qty * unitCost;
       }
     });
 
@@ -2242,6 +2482,7 @@ export class UltraStockSystem {
       const qty = parseFloat((row.querySelector('.sales-quantity') as HTMLInputElement)?.value) || 0;
       const price = parseFloat((row.querySelector('.sales-price') as HTMLInputElement)?.value) || 0;
       const total = parseFloat((row.querySelector('.sales-total') as HTMLInputElement)?.value) || 0;
+      const unitType = (row.querySelector('.sales-unit-dropdown') as HTMLSelectElement)?.value || 'display';
 
       if (!item) {
         this.showToast(`Item "${rawVal}" not found`, 'warning');
@@ -2249,11 +2490,24 @@ export class UltraStockSystem {
         return;
       }
 
-      if (item.quantityDisplay < qty) {
-        this.showToast(`Insufficient stock for ${item.name}. Available: ${item.quantityDisplay.toFixed(2)}`, 'danger');
+      if (qty <= 0) {
+        this.showToast(`Please enter a valid quantity for ${item.name}`, 'warning');
         stockError = true;
         return;
       }
+
+      const unitName = unitType === 'base' ? item.baseUnit : unitType === 'register' ? item.registeredUnit : item.displayUnit;
+      const availInUnit = UnitConversionSystem.convertQty(item.quantityDisplay, 'display', unitType, item);
+
+      if (availInUnit < qty) {
+        this.showToast(`Insufficient stock for ${item.name}. Available: ${availInUnit.toFixed(2)} ${unitName}`, 'danger');
+        stockError = true;
+        return;
+      }
+
+      const qtyDisplayDeducted = UnitConversionSystem.toDisplay(qty, unitType, item);
+      const qtyBaseDeducted = UnitConversionSystem.toBase(qty, unitType, item);
+      const unitCost = UnitConversionSystem.getCostForUnit(item.purchasePricePerDisplay, unitType, item);
 
       saleItems.push({
         id: item.id,
@@ -2261,8 +2515,12 @@ export class UltraStockSystem {
         category: item.category,
         type: item.type,
         quantity: qty,
-        unit: item.displayUnit,
+        unit: unitName,
+        unitType,
+        quantityDisplay: qtyDisplayDeducted,
+        quantityBase: qtyBaseDeducted,
         unitPrice: price,
+        costPrice: unitCost,
         netAmount: total,
         batch: item.batchNumber,
         expiry: item.expiryDate
@@ -2271,17 +2529,17 @@ export class UltraStockSystem {
 
     if (stockError || saleItems.length === 0) return;
 
-    // Deduct stock
+    // Deduct stock accurately using converted display and base quantities
     saleItems.forEach(saleItem => {
       const item = this.stockItems.find(i => i.id === saleItem.id);
       if (item) {
-        item.quantityDisplay -= saleItem.quantity;
+        item.quantityDisplay -= saleItem.quantityDisplay;
         item.quantityBase = item.quantityDisplay * item.displayToBaseFactor;
         item.quantityRegistered = item.quantityBase / item.registeredToBaseFactor;
-        item.quantityIssued = (item.quantityIssued || 0) + saleItem.quantity;
+        item.quantityIssued = (item.quantityIssued || 0) + saleItem.quantityDisplay;
         item.endingBalance = item.quantityDisplay;
 
-        this.recordAudit('sale', item.id, item.name, saleItem.quantity, 'stock_out', this.currentBranch, this.currentUserType || 'User', { price: saleItem.unitPrice, total: saleItem.netAmount });
+        this.recordAudit('sale', item.id, item.name, saleItem.quantity, 'stock_out', this.currentBranch, this.currentUserType || 'User', { unit: saleItem.unit, price: saleItem.unitPrice, total: saleItem.netAmount });
       }
     });
 
@@ -2336,8 +2594,8 @@ export class UltraStockSystem {
           <td>${this.escapeHtml(i.name)}</td>
           <td>${i.category || '-'}</td>
           <td>${i.type || '-'}</td>
-          <td>${i.quantity}</td>
-          <td>${i.unit}</td>
+          <td>${typeof i.quantity === 'number' ? i.quantity.toFixed(2) : i.quantity}</td>
+          <td><strong>${i.unit}</strong></td>
           <td>ETB ${i.unitPrice.toFixed(2)}</td>
           <td>ETB ${i.netAmount.toFixed(2)}</td>
           <td>-</td><td>-</td><td>-</td>
@@ -2391,12 +2649,37 @@ export class UltraStockSystem {
     const id = parseInt((document.getElementById('reduceItemSelect') as HTMLSelectElement)?.value);
     const item = this.stockItems.find(i => i.id === id);
     if (item) {
-      (document.getElementById('reduceAvailable') as HTMLInputElement).value = `${item.quantityDisplay.toFixed(2)} ${item.displayUnit}`;
+      const regFactor = item.registeredToBaseFactor || 1;
+      const dispFactor = item.displayToBaseFactor || 1;
+      const regQty = (item.quantityDisplay * dispFactor) / regFactor;
+      const baseQty = item.quantityDisplay * dispFactor;
+
+      const unitSel = (document.getElementById('reduceUnitSelector') as HTMLSelectElement)?.value || 'displayUnit';
+      let currentUnitQty = item.quantityDisplay;
+      let currentUnitName = item.displayUnit;
+
+      if (unitSel === 'baseUnit') {
+        currentUnitQty = baseQty;
+        currentUnitName = item.baseUnit;
+      } else if (unitSel === 'registeredUnit') {
+        currentUnitQty = regQty;
+        currentUnitName = item.registeredUnit;
+      }
+
+      (document.getElementById('reduceAvailable') as HTMLInputElement).value = 
+        `${currentUnitQty.toFixed(2)} ${currentUnitName} (${item.quantityDisplay.toFixed(2)} ${item.displayUnit} / ${regQty.toFixed(2)} ${item.registeredUnit} / ${baseQty.toFixed(2)} ${item.baseUnit})`;
       (document.getElementById('reduceCategory') as HTMLInputElement).value = item.category || '';
       (document.getElementById('reduceType') as HTMLInputElement).value = item.type || '';
       (document.getElementById('reduceBatchNumber') as HTMLInputElement).value = item.batchNumber || '';
       (document.getElementById('reduceExpiryDate') as HTMLInputElement).value = item.expiryDate || '';
       (document.getElementById('reduceShelfBin') as HTMLInputElement).value = item.shelfBin || '';
+
+      const redBase = document.getElementById('reduceBaseUnit') as HTMLInputElement;
+      const redReg = document.getElementById('reduceRegUnit') as HTMLInputElement;
+      const redDisp = document.getElementById('reduceDisplayUnit') as HTMLInputElement;
+      if (redBase) redBase.value = item.baseUnit;
+      if (redReg) redReg.value = item.registeredUnit;
+      if (redDisp) redDisp.value = item.displayUnit;
     }
   }
 
@@ -2413,21 +2696,29 @@ export class UltraStockSystem {
     const item = this.stockItems.find(i => i.id === id);
     if (!item) return;
 
-    if (item.quantityDisplay < qty) {
-      this.showToast(`Insufficient stock. Available: ${item.quantityDisplay.toFixed(2)}`, 'danger');
+    const unitSelector = (document.getElementById('reduceUnitSelector') as HTMLSelectElement)?.value || 'displayUnit';
+    const unitType = unitSelector === 'baseUnit' ? 'base' : unitSelector === 'registeredUnit' ? 'register' : 'display';
+    const unitLabel = unitType === 'base' ? item.baseUnit : unitType === 'register' ? item.registeredUnit : item.displayUnit;
+
+    const availInUnit = UnitConversionSystem.convertQty(item.quantityDisplay, 'display', unitType, item);
+    if (availInUnit < qty) {
+      this.showToast(`Insufficient stock. Available: ${availInUnit.toFixed(2)} ${unitLabel}`, 'danger');
       return;
     }
+
+    const qtyDisplayDeducted = UnitConversionSystem.toDisplay(qty, unitType, item);
+    const unitCost = UnitConversionSystem.getCostForUnit(item.purchasePricePerDisplay, unitType, item);
+    const valueLost = qty * unitCost;
+
+    item.quantityDisplay -= qtyDisplayDeducted;
+    item.quantityBase = item.quantityDisplay * item.displayToBaseFactor;
+    item.quantityRegistered = item.quantityBase / item.registeredToBaseFactor;
+    item.quantityIssued = (item.quantityIssued || 0) + qtyDisplayDeducted;
+    item.endingBalance = item.quantityDisplay;
 
     const reason = (document.getElementById('reduceReason') as HTMLSelectElement)?.value;
     const responsible = (document.getElementById('whom') as HTMLInputElement)?.value;
     const notes = (document.getElementById('reduceNotes') as HTMLTextAreaElement)?.value;
-    const valueLost = qty * item.purchasePricePerDisplay;
-
-    item.quantityDisplay -= qty;
-    item.quantityBase = item.quantityDisplay * item.displayToBaseFactor;
-    item.quantityRegistered = item.quantityBase / item.registeredToBaseFactor;
-    item.quantityIssued = (item.quantityIssued || 0) + qty;
-    item.endingBalance = item.quantityDisplay;
 
     const transaction = {
       id: Date.now(),
@@ -2436,7 +2727,7 @@ export class UltraStockSystem {
       itemName: item.name,
       category: item.category,
       quantity: qty,
-      unit: item.displayUnit,
+      unit: unitLabel,
       batch: item.batchNumber,
       expiry: item.expiryDate,
       reason,
@@ -2447,9 +2738,9 @@ export class UltraStockSystem {
     };
 
     this.transactions.unshift(transaction);
-    this.recordAudit('deduct', item.id, item.name, qty, reason, this.currentBranch, responsible, { valueLost, notes });
+    this.recordAudit('deduct', item.id, item.name, qty, reason, this.currentBranch, responsible, { unit: unitLabel, valueLost, notes });
     this.saveToLocalStorage();
-    this.showToast(`Deducted ${qty.toFixed(2)} ${item.displayUnit} from ${item.name}`, 'warning');
+    this.showToast(`Deducted ${qty.toFixed(2)} ${unitLabel} from ${item.name}`, 'warning');
     this.clearReduceForm();
     this.initReducePage();
     this.renderTable();

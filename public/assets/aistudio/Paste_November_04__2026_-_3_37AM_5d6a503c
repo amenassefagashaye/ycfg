@@ -1,0 +1,975 @@
+# MASTER PROMPT: MAXIMUM PRACTICAL OFFLINE SOFTWARE SECURITY — SINGLE HTML FILE
+
+## Existing Application Protection, Data Encryption, Authentication, Device Authorization, Anti-Tampering, and Recovery
+
+### PROJECT OBJECTIVE
+
+Upgrade my existing offline application to achieve the maximum practical level of security technically possible while maintaining its existing functionality and local offline operation.
+
+**MANDATORY ARCHITECTURE: ONE SELF-CONTAINED HTML FILE.**
+
+The final application must use:
+
+- One `index.html` file.
+- HTML embedded directly inside the file.
+- CSS embedded inside a `<style>` section.
+- JavaScript embedded inside `<script>` sections.
+- Local browser storage, primarily IndexedDB.
+- Native browser APIs where suitable.
+- No external JavaScript or CSS files.
+- No online CDN dependencies.
+- No remote authentication services.
+- No mandatory internet connection.
+
+Do not create separate CSS, JavaScript, backend, configuration, or framework files.
+
+The objective is to integrate the requested security improvements into the existing single HTML file without unnecessarily changing its architecture, appearance, data, or behavior.
+
+---
+
+# PART 1: STRICT SINGLE-FILE ARCHITECTURE AND APPLICATION PRESERVATION
+
+Before making any modifications, inspect the complete existing `index.html` file, including all HTML, CSS, JavaScript, embedded libraries, database operations, and application workflows.
+
+### 1.1 Mandatory single-file architecture
+
+Keep the entire application inside:
+
+`index.html`
+
+Organize its contents internally:
+
+1. HTML structure.
+2. Embedded CSS inside `<style>`.
+3. Embedded JavaScript inside `<script>`.
+4. Internal security utilities.
+5. Authentication and authorization logic.
+6. Database and encryption logic.
+7. Backup and recovery logic.
+8. Audit and integrity functions.
+9. Existing application functionality.
+
+Use clear internal sections and comments so that the single file remains maintainable.
+
+Do not split the application into:
+
+- `style.css`
+- `script.js`
+- `security.js`
+- `auth.js`
+- `database.js`
+- `config.js`
+- `server.js`
+- Other additional application source files.
+
+Do not introduce external frameworks or libraries unless an essential existing dependency must be preserved and the reason is explained.
+
+### 1.2 Preserve all existing functionality
+
+Preserve the existing:
+
+- HTML structure and content.
+- CSS and visual design.
+- JavaScript functionality.
+- Existing application architecture.
+- Authentication system.
+- Administrator accounts.
+- Ordinary user accounts.
+- Existing roles and permissions.
+- IndexedDB databases and records.
+- LocalStorage keys and data.
+- Existing application settings.
+- Existing calculations and reports.
+- Existing buttons and navigation.
+- Existing desktop and mobile interfaces.
+- Existing offline workflows.
+- Existing backup and restoration functions.
+- Existing business rules and integrations.
+
+### 1.3 Absolute preservation rules
+
+1. Do not rebuild the application.
+2. Do not redesign the interface.
+3. Do not replace the existing application with a new implementation.
+4. Do not remove existing features.
+5. Do not change unrelated functionality.
+6. Do not reset, clear, or overwrite existing databases.
+7. Do not replace existing accounts.
+8. Do not change existing calculations or business rules.
+9. Do not introduce unnecessary dependencies.
+10. Do not require internet access for ordinary authorized operations.
+11. Modify only the existing `index.html` file unless I explicitly authorize additional files.
+12. Preserve the existing application behavior as closely as technically possible.
+
+**ABSOLUTE RULE: KEEP EVERYTHING ELSE 100% AS IT IS.**
+
+If a security improvement conflicts with an existing feature, explain the conflict and propose a safe migration before implementing the change.
+
+---
+
+# PART 2: SOURCE-CODE PROTECTION
+
+Implement practical source-code protection within the limitations of a browser-based application.
+
+Required measures:
+
+1. Selective JavaScript minification.
+2. Selective JavaScript obfuscation.
+3. Removal of unnecessary development comments from production code.
+4. Protection of development-only information.
+5. Application copyright identification.
+6. Developer ownership identification where appropriate.
+7. Application version identification.
+8. Application fingerprinting.
+9. Consistent release identification.
+10. Secure production release procedures.
+11. Protected development backups.
+12. Unauthorized modification detection.
+13. Avoidance of exposed credentials and secrets.
+14. Secure separation of development and production information within the existing file.
+
+### Mandatory requirements
+
+- Do not store passwords in JavaScript.
+- Do not embed encryption secrets or private signing keys in the HTML file.
+- Do not expose unnecessary internal information.
+- Do not use excessive obfuscation that breaks application functionality.
+- Do not introduce a runtime obfuscation dependency.
+- Do not claim that minification or obfuscation prevents copying or reverse engineering.
+
+If a production build requires minification or obfuscation, explain whether it can be performed without creating additional distributed application files.
+
+**Important:** HTML, CSS, and JavaScript delivered to a browser can be inspected and copied. The goal is practical deterrence and protection of sensitive data, not impossible-to-bypass source-code protection.
+
+---
+
+# PART 3: OFFLINE AUTHENTICATION SECURITY
+
+Strengthen the existing offline authentication system without removing existing accounts.
+
+Implement, where technically appropriate:
+
+1. Secure offline login.
+2. Strong password verification.
+3. Password hashing.
+4. Unique cryptographic salts.
+5. Password-hash versioning.
+6. Secure password changes.
+7. Secure password recovery.
+8. Administrator-only permissions.
+9. User-specific permissions.
+10. Operation-level authorization.
+11. Automatic session expiration.
+12. Inactivity timeout.
+13. Automatic logout.
+14. Secure logout.
+15. Failed-login tracking.
+16. Login rate limiting.
+17. Temporary account lockout.
+18. Session revocation.
+19. Protection against session reuse.
+20. Device-associated sessions.
+21. Secure account switching.
+22. Session expiration after application restart where required.
+
+### Password security requirements
+
+- Never store plaintext passwords.
+- Never store reversible passwords.
+- Never hardcode passwords in JavaScript.
+- Never use a fixed or shared salt.
+- Use a password-hashing mechanism appropriate for the browser environment.
+- Prefer a properly maintained offline Argon2id implementation only if it can be embedded and maintained without external runtime dependencies.
+- Otherwise, use native Web Crypto PBKDF2-HMAC-SHA-256 with a unique random salt and a properly calibrated work factor.
+- Version password-hashing parameters.
+- Support safe password-hash upgrades.
+- Never silently downgrade password security.
+
+### Authentication migration
+
+If the existing application uses a different password-storage format:
+
+1. Inspect the current implementation.
+2. Preserve all existing accounts.
+3. Design a safe migration.
+4. Migrate credentials only through a verified process.
+5. Do not reset administrator passwords automatically.
+6. Do not lock out legitimate users.
+7. Provide a recovery procedure before applying the migration.
+
+Clearly distinguish offline authentication from online identity verification.
+
+Do not claim that an offline application can independently verify an administrator through an external authority without internet access.
+
+---
+
+# PART 4: DEVICE REGISTRATION AND AUTHORIZATION
+
+Implement practical offline device authorization.
+
+Required features:
+
+1. Authorized device registration.
+2. Local device identity records.
+3. Device-specific authorization.
+4. New-device verification.
+5. Administrator-controlled device approval.
+6. Device access revocation.
+7. Session-device association.
+8. Device activity logging.
+9. Configurable device registration limits.
+10. Device replacement procedures.
+11. Lost-device recovery.
+12. Authorized backup restoration on replacement devices.
+13. Device registration history.
+14. Device authorization status monitoring.
+
+### Device security requirements
+
+- Do not rely solely on browser fingerprints.
+- Do not treat a browser-generated device ID as proof of trusted hardware.
+- Use cryptographic device credentials where technically practical.
+- Use Web Crypto for locally generated cryptographic material.
+- Protect device registration and recovery operations.
+- Require administrator authorization for new-device approval.
+- Provide a safe replacement procedure.
+- Avoid permanently locking out the legitimate administrator after device loss.
+
+### Offline device verification
+
+Because the application must work without internet:
+
+- Support local device registration.
+- Support administrator-approved offline enrollment.
+- Where appropriate, support a one-time authorization or recovery code.
+- Do not pretend that a locally generated device ID cannot be copied.
+- Explain that genuine hardware-backed device identity generally requires operating-system or native application support.
+
+Clearly identify which device-verification features are genuinely implemented offline and which would require external infrastructure.
+
+---
+
+# PART 5: LOCAL DATABASE ENCRYPTION AND PROTECTION
+
+Protect sensitive IndexedDB and LocalStorage records.
+
+Implement:
+
+1. AES-256-GCM encryption for sensitive records.
+2. Native Web Crypto API integration.
+3. Secure encryption-key generation.
+4. Appropriate key derivation.
+5. Unique random salts.
+6. Unique encryption nonces.
+7. Authenticated encryption.
+8. Encryption-version information.
+9. Cryptographic integrity verification.
+10. Record-level data validation.
+11. Secure database transactions.
+12. Unauthorized modification detection.
+13. Sensitive-data masking.
+14. Secure database migration.
+15. Secure backup encryption.
+16. Recovery verification.
+17. Encryption-key rotation where practical.
+18. Safe handling of encryption failures.
+19. Protection against accidental data corruption.
+
+### Critical encryption rules
+
+- Never store plaintext encryption keys beside encrypted records.
+- Never hardcode encryption keys in the HTML file.
+- Never use a fixed encryption key.
+- Never use a simple fixed password directly as an encryption key.
+- Derive encryption keys using an appropriate password-based key derivation process.
+- Use AES-GCM authenticated encryption.
+- Use a fresh, cryptographically random nonce for every encryption operation under the same key.
+- Never reuse an AES-GCM nonce with the same key.
+- Authenticate relevant record metadata where appropriate.
+- Maintain encryption-version information.
+- Preserve existing records during migration.
+- Verify encrypted records before accepting restoration.
+- Do not silently discard records that fail decryption.
+
+### Key management and recovery
+
+Use non-extractable CryptoKey objects where appropriate.
+
+However:
+
+- Do not assume non-extractable keys provide complete protection against someone controlling the browser profile or operating system.
+- Do not store the only recovery key beside the encrypted database.
+- Explain the consequences of losing the encryption passphrase or recovery key.
+- Provide an authorized recovery procedure.
+- Never create a hidden universal administrator password or universal decryption key.
+
+If the encryption key is lost and no valid recovery method exists, explain that encrypted data may be permanently unrecoverable.
+
+---
+
+# PART 6: APPLICATION ANTI-TAMPERING AND INTEGRITY
+
+Implement practical application integrity protection.
+
+Required mechanisms:
+
+1. Application version identification.
+2. Cryptographic file hashing where supported.
+3. Trusted release identification.
+4. Configuration validation.
+5. Critical application data integrity checks.
+6. Unauthorized modification detection.
+7. Tamper-evident audit records.
+8. Trusted recovery procedures.
+9. Secure release verification.
+10. Signed application releases where supported.
+11. Release manifest verification.
+12. Application version consistency checks.
+
+### Integrity requirements
+
+- Do not rely on a hash stored beside a file as the only protection against modification.
+- Do not rely on a hash embedded in the same modifiable HTML file as a trustworthy external integrity guarantee.
+- Do not rely on frontend integrity checks as the sole security boundary.
+- Keep release-signing private keys outside the distributed application.
+- Use a separately trusted release hash or signed release manifest where practical.
+- Verify updates before accepting them.
+- Never automatically delete user data after an integrity failure.
+- Provide a safe recovery procedure.
+
+### Single-file limitation
+
+A single HTML file cannot securely verify its own integrity against an attacker who can modify the entire file and its verification code.
+
+For stronger release verification, use a trusted checksum or signature distributed separately from the application. Do not create additional files unless explicitly authorized.
+
+Clearly document this limitation.
+
+---
+
+# PART 7: SINGLE-FILE OFFLINE OPERATION AND PWA LIMITATIONS
+
+Maintain the application's offline functionality.
+
+Use browser-native capabilities where supported:
+
+1. IndexedDB.
+2. LocalStorage only where appropriate.
+3. Web Crypto API.
+4. Blob and File APIs.
+5. Native form validation.
+6. Offline data processing.
+7. Local backup and restoration.
+8. Browser storage persistence requests where supported.
+
+### Mandatory single-file restrictions
+
+The application must not depend on:
+
+- External CSS files.
+- External JavaScript files.
+- Online CDNs.
+- Remote APIs.
+- Remote fonts.
+- Remote images.
+- Remote authentication.
+- Online database services.
+- Internet-based licensing checks.
+
+All essential application functions must be contained within the single HTML file.
+
+### Important PWA limitation
+
+A standards-compliant installable PWA normally requires a separate Service Worker script and a Web App Manifest. A Service Worker cannot simply be embedded inside the HTML file as an ordinary inline script.
+
+Also, browsers generally restrict Service Worker registration to secure origins, and opening an HTML file directly through `file://` does not provide normal Service Worker support.
+
+Therefore:
+
+1. Do not falsely claim that a single HTML file provides every standard PWA capability.
+2. Do not silently create a separate Service Worker or manifest.
+3. Preserve existing PWA support files if they already exist and are outside the requested single-file scope, but do not modify or remove them without authorization.
+4. If the user strictly requires one file only, prioritize the single-file offline application and explain which PWA installation or Service Worker features may not be available.
+5. Test the actual target browser and launch method.
+6. Do not promise that every browser API behaves identically when the file is opened directly from `file://`.
+
+If a secure local origin is required for a particular browser feature, explain the requirement and request authorization before introducing additional files or a local server.
+
+---
+
+# PART 8: OFFLINE ACCESS CONTROL AND PERMISSIONS
+
+Implement secure offline authorization for all existing roles.
+
+Required features:
+
+1. Offline user authentication.
+2. Offline administrator authentication.
+3. Permission-specific operations.
+4. Session expiration.
+5. Inactivity timeout.
+6. Secure logout.
+7. Offline data-access restrictions.
+8. Protected administrator settings.
+9. Local account activity monitoring.
+10. Unauthorized access detection.
+11. Protected administrator operations.
+12. Secure account switching.
+13. Permission verification before sensitive operations.
+14. Protection against privilege escalation.
+
+### Mandatory authorization rules
+
+Do not rely on:
+
+- Hidden buttons.
+- CSS visibility.
+- Disabled controls alone.
+- LocalStorage role values.
+- Editable frontend variables.
+- Client-side navigation restrictions alone.
+
+Every sensitive operation must independently validate:
+
+1. The authenticated session.
+2. The user's current role.
+3. The required permission.
+4. The validity of the requested operation.
+5. The relevant data-access restrictions.
+
+Apply authorization checks to database operations, exports, backups, restoration, account management, settings, and administrative actions.
+
+Do not allow an ordinary user to become an administrator by changing browser storage or modifying visible interface elements.
+
+Recognize that a frontend-only application cannot provide an absolute security boundary against someone with complete control of the device and application code.
+
+---
+
+# PART 9: DATA THEFT AND EXPORT PROTECTION
+
+Protect sensitive application information.
+
+Implement:
+
+1. Administrator-controlled exports.
+2. User-specific export permissions.
+3. Secure CSV exports.
+4. Secure Excel-compatible exports where existing functionality supports them.
+5. Secure PDF exports where existing functionality supports them.
+6. Export activity logging.
+7. Watermarked reports where appropriate.
+8. Sensitive-data masking.
+9. Encrypted backups.
+10. Backup integrity verification.
+11. Backup access restrictions.
+12. Secure data restoration.
+13. Export confirmation for sensitive information.
+14. Permission verification before every export.
+15. Protection against spreadsheet formula injection.
+
+Record:
+
+- Who performed the export.
+- Date and time.
+- Export category.
+- Exported record scope.
+- Export result.
+
+Never silently destroy existing data.
+
+Clearly document that files already downloaded or exported cannot reliably be recalled or controlled by the application.
+
+Do not remove existing export formats or report functions.
+
+---
+
+# PART 10: SECURE OFFLINE BACKUP AND RECOVERY
+
+Maintain and strengthen the existing backup and restoration system.
+
+Implement:
+
+1. Automatic local backup where supported.
+2. Manual backup.
+3. Encrypted backup files.
+4. Backup integrity verification.
+5. Backup version identification.
+6. Backup access authorization.
+7. Secure restoration.
+8. Restore confirmation.
+9. Data recovery procedures.
+10. Backup history.
+11. Protection against unauthorized backup modification.
+12. Recovery testing.
+13. Authorized replacement-device restoration.
+14. Backup compatibility verification.
+15. Database migration compatibility.
+16. Recovery from interrupted restoration.
+17. Pre-restoration safety backup.
+
+### Mandatory backup requirements
+
+- Never overwrite the only existing backup.
+- Never restore an unverified backup.
+- Never silently replace current user records.
+- Verify backup integrity before restoration.
+- Verify backup version and compatibility.
+- Confirm the restoration target.
+- Create a recoverable pre-restoration backup.
+- Preserve existing records unless an explicitly authorized restoration requires replacement.
+- Validate imported data and database schemas.
+- Use transactional or staged restoration where supported.
+- Provide clear success and failure messages.
+- Do not claim that browser storage provides unlimited backup capacity.
+
+Ensure that authorized backups can be restored on a replacement device through a defined recovery process.
+
+---
+
+# PART 11: LOCAL AUDIT AND SECURITY MONITORING
+
+Create or strengthen a local security audit system.
+
+Record:
+
+1. Successful login events.
+2. Failed login events.
+3. Logout events.
+4. Session expiration events.
+5. Device registration events.
+6. Device authorization events.
+7. Device revocation events.
+8. Permission changes.
+9. Administrator activities.
+10. Data modifications.
+11. Data deletion events.
+12. Data exports.
+13. Backup operations.
+14. Restore operations.
+15. Application integrity failures.
+16. Security configuration changes.
+17. Suspicious local activity.
+18. Password changes.
+19. Account lockouts.
+20. Unauthorized operation attempts.
+
+### Audit protection
+
+- Use structured audit records.
+- Include timestamps and unique event identifiers.
+- Maintain record integrity.
+- Use cryptographic hash chaining where appropriate.
+- Restrict ordinary users from modifying audit records through application functions.
+- Log administrative changes.
+- Never log plaintext passwords or encryption keys.
+- Avoid logging unnecessary sensitive information.
+- Preserve pending security events during offline operation.
+- Integrate with existing synchronization only if such functionality already exists.
+
+Clearly explain that local audit logs cannot be made absolutely tamper-proof against an attacker with full control of the device.
+
+---
+
+# PART 12: FRONTEND AND SCRIPT SECURITY
+
+Implement:
+
+1. Appropriate Content Security Policy.
+2. Cross-site scripting protection.
+3. Safe DOM manipulation.
+4. Input validation.
+5. Output encoding.
+6. Secure dependency management.
+7. JavaScript integrity verification where meaningful.
+8. Secure event handling.
+9. Protection against malicious HTML.
+10. Secure error handling.
+11. Restriction of unnecessary external resources.
+12. Secure application initialization.
+13. Safe file processing.
+14. Secure dynamic content rendering.
+15. Protection against injection through imported data.
+16. Appropriate security headers where the hosting environment supports them.
+
+### Additional requirements
+
+- Avoid unsafe HTML insertion.
+- Prefer `textContent` for untrusted text.
+- Validate imported files and records.
+- Never execute user-supplied JavaScript.
+- Avoid unnecessary third-party scripts.
+- Maintain secure event listeners.
+- Avoid exposing sensitive internal information through error messages.
+- Do not weaken existing application security to accommodate unnecessary dependencies.
+
+### Single-file CSP limitation
+
+Because the application uses inline CSS and JavaScript, a strict Content Security Policy must be designed for that architecture.
+
+Where practical:
+
+- Use appropriate script and style hashes.
+- Avoid broadly allowing unsafe inline scripts.
+- Avoid unnecessary `eval`.
+- Document any CSP restrictions that cannot be fully enforced through a local HTML file.
+- Explain which security headers require an HTTP server or hosting configuration.
+
+Do not claim that a CSP meta element provides every security header available through an HTTP response.
+
+---
+
+# PART 13: OFFLINE DATA PERSISTENCE
+
+The application must remain usable without internet connectivity.
+
+Verify:
+
+1. Application startup offline.
+2. Offline authentication.
+3. Offline administrator operations.
+4. Offline ordinary-user operations.
+5. Offline database access.
+6. Offline data modification.
+7. Offline backup.
+8. Offline restoration.
+9. Offline reports.
+10. Offline exports.
+11. Data persistence after closing the browser.
+12. Data persistence after restarting the computer.
+13. Safe application updates where supported.
+14. Recovery from interrupted operations.
+
+### Storage requirements
+
+- Use IndexedDB for structured application records.
+- Avoid unnecessary duplication between IndexedDB and LocalStorage.
+- Request persistent browser storage where supported.
+- Handle browser storage quota limits.
+- Detect storage failures.
+- Prevent incomplete writes from being reported as successful.
+- Use appropriate transactions.
+- Preserve data during application upgrades.
+- Provide backup reminders where appropriate.
+- Never promise unlimited browser storage.
+
+The application must not require internet connectivity for ordinary authorized offline activities.
+
+---
+
+# PART 14: OFFLINE SECURITY TESTING
+
+Perform controlled security testing using a separate test database or verified test copy.
+
+Test:
+
+1. Unauthorized login.
+2. Repeated incorrect passwords.
+3. Expired sessions.
+4. Unauthorized administrator access.
+5. Unauthorized device access.
+6. IndexedDB data manipulation.
+7. LocalStorage manipulation.
+8. Encrypted database integrity.
+9. Backup modification.
+10. Unauthorized backup restoration.
+11. Unauthorized data export.
+12. Application file modification.
+13. Unauthorized application updates.
+14. Offline logout.
+15. Offline session expiration.
+16. Data recovery.
+17. Application restart.
+18. Offline operation after restarting the computer.
+19. Permission escalation attempts.
+20. Unauthorized account switching.
+21. Malicious imported HTML.
+22. Invalid backup files.
+23. Interrupted database migrations.
+24. Encryption-key recovery.
+25. Encryption-key rotation.
+26. Audit-record integrity.
+27. Browser storage quota exhaustion.
+28. Application recovery after an integrity failure.
+29. CSP behavior.
+30. Single-file operation in the intended browser.
+
+### Testing rules
+
+- Do not perform destructive testing on real user data.
+- Do not delete production databases during testing.
+- Create a verified backup before migration.
+- Test authorized and unauthorized operations.
+- Verify existing features after every security modification.
+- Document every failed test.
+- Do not claim an untested security feature is complete.
+
+---
+
+# PART 15: IMPLEMENTATION AND MIGRATION PROCEDURES
+
+Follow this exact implementation sequence.
+
+### Phase 1: Complete application inspection
+
+1. Inspect the entire existing HTML file.
+2. Identify all HTML sections.
+3. Identify all embedded CSS.
+4. Identify all JavaScript functions.
+5. Identify authentication architecture.
+6. Identify role and permission architecture.
+7. Identify all IndexedDB databases and stores.
+8. Identify all LocalStorage keys.
+9. Identify backup and recovery mechanisms.
+10. Identify existing PWA support files, if any.
+11. Identify external dependencies.
+12. Identify existing security weaknesses.
+13. Record the current application behavior.
+
+### Phase 2: Baseline protection
+
+1. Create a complete backup of the original HTML file.
+2. Create a verified database backup.
+3. Preserve existing application configuration.
+4. Record the original file hash.
+5. Document existing application behavior.
+6. Establish a rollback procedure.
+7. Confirm the original application can be restored.
+
+### Phase 3: Incremental security implementation
+
+Implement security features in controlled stages:
+
+1. Authentication security.
+2. Permission and session security.
+3. Device authorization.
+4. Local database encryption.
+5. Data integrity protection.
+6. Application anti-tampering.
+7. Backup and recovery security.
+8. Audit and monitoring.
+9. Frontend security.
+10. Export protection.
+11. Offline storage reliability.
+12. Final security verification.
+
+Keep all implementation code inside the existing `index.html` file.
+
+### Phase 4: Safe migration
+
+For every database or security migration:
+
+1. Inspect the existing schema.
+2. Preserve existing stores and records.
+3. Use versioned database migrations.
+4. Create a verified pre-migration backup.
+5. Perform migration transactionally where supported.
+6. Verify record counts and integrity.
+7. Verify existing application functions.
+8. Preserve rollback and recovery capability.
+9. Never silently discard incompatible records.
+10. Do not mark migration complete until verification passes.
+
+### Phase 5: Final integration
+
+1. Integrate security improvements into the existing HTML file.
+2. Keep CSS inside the existing `<style>` section.
+3. Keep JavaScript inside the existing `<script>` sections.
+4. Preserve existing UI and layouts.
+5. Preserve existing workflows.
+6. Preserve existing calculations.
+7. Preserve existing buttons and navigation.
+8. Preserve desktop and mobile responsiveness.
+9. Preserve offline functionality.
+10. Remove only code that has been safely replaced.
+11. Verify the complete application.
+12. Confirm that no unauthorized additional source files were created.
+
+---
+
+# PART 16: FINAL VERIFICATION CHECKLIST
+
+Before reporting completion, verify:
+
+- [ ] The application is contained in one `index.html` file.
+- [ ] HTML remains functional.
+- [ ] Embedded CSS remains functional.
+- [ ] Embedded JavaScript remains functional.
+- [ ] Application launches without internet.
+- [ ] Offline login works.
+- [ ] Existing administrator accounts work.
+- [ ] Existing ordinary-user accounts work.
+- [ ] Administrator permissions work.
+- [ ] Ordinary-user permissions work.
+- [ ] Device authorization works within its stated limitations.
+- [ ] Session expiration works.
+- [ ] Automatic logout works.
+- [ ] Unauthorized access is denied.
+- [ ] Database encryption works.
+- [ ] Encryption integrity checks work.
+- [ ] Application integrity checks work within their stated limitations.
+- [ ] Backup creation works.
+- [ ] Backup restoration works.
+- [ ] Existing data is preserved.
+- [ ] Existing reports work.
+- [ ] Existing exports work.
+- [ ] Existing calculations work.
+- [ ] Existing buttons work.
+- [ ] Existing navigation works.
+- [ ] Existing database functions work.
+- [ ] Desktop interface works.
+- [ ] Mobile interface works.
+- [ ] Data persists after application closure.
+- [ ] Recovery procedures work.
+- [ ] No unnecessary external dependencies were introduced.
+- [ ] No unrelated functionality was removed.
+- [ ] No additional application source files were created without authorization.
+
+If a PWA capability cannot work under the strict single-file requirement, mark it as a documented limitation rather than falsely marking it as passed.
+
+---
+
+# PART 17: FINAL SECURITY IMPLEMENTATION REPORT
+
+After completing the work, provide a factual implementation report containing:
+
+1. Security features successfully implemented.
+2. Security features partially implemented.
+3. Security features not implemented.
+4. Existing application components inspected.
+5. Exact file modified.
+6. Confirmation of the single-file architecture.
+7. Database changes and migrations.
+8. Authentication changes.
+9. Encryption mechanisms.
+10. Device authorization mechanisms.
+11. Application integrity mechanisms.
+12. Backup and recovery mechanisms.
+13. Audit and monitoring mechanisms.
+14. Security tests performed.
+15. Tests passed.
+16. Tests failed.
+17. Remaining vulnerabilities.
+18. Known offline security limitations.
+19. Single-file and PWA limitations.
+20. Manual configuration requirements.
+21. Backup and recovery instructions.
+22. How to open and operate the application offline.
+23. Rollback instructions.
+24. Recommendations for future improvements.
+
+Clearly distinguish between:
+
+- Implemented and verified.
+- Implemented but not fully tested.
+- Partially implemented.
+- Not implemented.
+- Technically unavailable within the current architecture.
+
+Never report a feature as completed merely because code was generated.
+
+---
+
+# PART 18: ADDITIONAL NON-NEGOTIABLE SECURITY RULES
+
+1. No plaintext passwords.
+2. No hardcoded encryption secrets.
+3. No simulated authentication.
+4. No simulated device verification.
+5. No fake encryption.
+6. No fake integrity checks.
+7. No fake audit logs.
+8. No frontend-only administrator security.
+9. No unnecessary internet dependencies.
+10. No unnecessary paid services.
+11. No unauthorized database resets.
+12. No silent backup replacement.
+13. No silent data deletion.
+14. No destructive database migration.
+15. No unnecessary application redesign.
+16. No unnecessary architecture replacement.
+17. No unrelated feature removal.
+18. No unverified security claims.
+19. No weakening of existing offline functionality.
+20. No additional application source files without authorization.
+21. No external CDN requirement.
+22. No hidden universal passwords or decryption keys.
+23. No false claims of unlimited storage.
+24. No false claims of impossible-to-copy source code.
+25. No false claims of complete protection against the device owner.
+
+### REALISTIC SECURITY LIMITATIONS
+
+A browser-based offline application contained in one HTML file cannot guarantee absolute protection against an attacker who has complete control of the computer, operating system, browser profile, or application file.
+
+Account for:
+
+- Browser developer tools.
+- Local filesystem access.
+- Browser-profile access.
+- Browser storage extraction.
+- Runtime JavaScript inspection.
+- Source-code reverse engineering.
+- Client-side security-check bypasses.
+- Encryption-key exposure during authorized use.
+- Local backup theft.
+- Browser storage limitations.
+- Offline device-verification limitations.
+- Single-file PWA limitations.
+- Modification of the entire application file.
+
+Use layered security rather than promising impossible protection.
+
+Prioritize encryption, operation-level access control, integrity verification, secure recovery, and prevention of unauthorized application operations.
+
+---
+
+# FINAL MANDATORY INSTRUCTION
+
+**UPGRADE MY EXISTING APPLICATION TO PROVIDE THE MAXIMUM PRACTICAL OFFLINE SECURITY WHILE KEEPING IT FULLY FUNCTIONAL AND CONTAINED IN ONE HTML FILE.**
+
+The final application must contain:
+
+- HTML.
+- CSS.
+- JavaScript.
+- Security implementation.
+- Authentication logic.
+- Encryption logic.
+- Database operations.
+- Backup and recovery logic.
+- Audit and integrity functions.
+- All existing application features.
+
+All must remain inside the existing `index.html` file.
+
+Inspect the complete existing application before modifying anything.
+
+Do not rebuild, replace, redesign, or unnecessarily restructure the application.
+
+Do not modify unrelated features.
+
+Do not remove existing functionality.
+
+Do not destroy, reset, overwrite, or corrupt existing user data.
+
+Do not compromise existing authentication, databases, interface, calculations, reports, buttons, navigation, or workflows.
+
+Implement only genuine, technically appropriate, testable security improvements.
+
+Preserve the existing architecture wherever possible while maintaining the strict single-file requirement.
+
+Prioritize:
+
+1. Maximum practical offline security.
+2. Protection of existing user data.
+3. Secure authentication and administrator authorization.
+4. Strong local database encryption.
+5. Device authorization.
+6. Application integrity and anti-tampering.
+7. Secure offline backup and recovery.
+8. Complete application functionality.
+9. Reliable desktop and mobile operation.
+10. Single-file maintainability.
+11. Long-term data preservation.
+
+**FINAL ABSOLUTE RULE: KEEP EVERYTHING ELSE 100% AS IT IS. MODIFY ONLY WHAT IS NECESSARY FOR THE REQUESTED SECURITY UPGRADES. KEEP ALL APPLICATION HTML, CSS, AND JAVASCRIPT INSIDE ONE EXISTING `index.html` FILE.**
